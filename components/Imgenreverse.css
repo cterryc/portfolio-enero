@@ -1,0 +1,59 @@
+/* Contenedor general */
+.flip-container {
+  @apply bg-contain max-h-[254px] h-max max-[1280px]:max-h-[210px];
+  @apply max-[1024px]:max-h-[145px] max-[768px]:max-h-[254px] max-[581px]:max-h-[200px];
+  @apply max-[485px]:max-h-[160px] max-[380px]:max-h-[145px];
+  perspective: 1000px; /* Permite el efecto 3D */
+  width: 100%; /* Ancho del contenedor */
+  height: 260px; /* Alto del contenedor */
+}
+
+/* Elemento que realiza el volteo */
+.flipper {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s; /* Duración del giro */
+  transform-style: preserve-3d; /* Preserva el efecto 3D */
+  position: relative;
+  background-color: #333;
+}
+
+/* Mostrar el giro al hacer hover */
+.flip-container:hover .flipper {
+  transform: rotateY(180deg); /* Rotación en el eje Y */
+}
+
+/* Estilo de la cara frontal */
+.front,
+.back {
+  backface-visibility: hidden; /* Oculta la cara trasera cuando no se ve */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cara frontal específica */
+.front img {
+  width: 100%; /* Ajusta la imagen al tamaño del contenedor */
+  height: auto;
+}
+
+/* Cara trasera específica */
+.back {
+  transform: rotateY(180deg); /* Rota la cara trasera */
+  background-color: #f8f8f8; /* Fondo diferente para la parte trasera */
+  color: #333; /* Color del texto */
+  font-size: 18px;
+  text-align: center;
+}
+
+.imagen-projects {
+  @apply object-fill max-h-[254px] h-max max-[1280px]:max-h-[230px];
+  @apply max-[1024px]:max-h-[145px] max-[768px]:max-h-[254px] max-[581px]:max-h-[200px];
+  @apply max-[485px]:max-h-[160px] h-full;
+}
