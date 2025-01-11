@@ -3,15 +3,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FiLink } from 'react-icons/fi'
+import { SiExpress, SiSequelize, SiPostgresql, SiPostman } from 'react-icons/si'
 import { FaReact, FaGitAlt, FaGithub, FaWix } from 'react-icons/fa'
 import { RiNodejsFill, RiNextjsFill } from 'react-icons/ri'
+import { IoBriefcaseOutline } from 'react-icons/io5'
 import { TbBrandRedux } from 'react-icons/tb'
-import { SiExpress, SiSequelize, SiPostgresql, SiPostman } from 'react-icons/si'
+import { FiLink } from 'react-icons/fi'
 import { Badge } from './ui/badge'
 import './Imgenreverse.css'
 
-const nameSkills = ['Front-End', 'Back-End', 'Data-Base', 'Tools']
+const nameSkills = ['FrontEnd', 'BackEnd', 'DataBase', 'Tools']
 
 const listaRepos = [
   {
@@ -67,7 +68,10 @@ export function Experience() {
   return (
     <Card className='col-span-3'>
       <CardHeader>
-        <CardTitle>Experiencia Laboral</CardTitle>
+        <CardTitle className='flex gap-2'>
+          <IoBriefcaseOutline />
+          Experiencia Laboral
+        </CardTitle>
       </CardHeader>
       <CardContent className='max-[420px]:px-2'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -104,7 +108,9 @@ export function Experience() {
                               key={i}
                               className='text-sm flex flex-col w-full'
                             >
-                              <h1 className='w-full'>{nameSkills[i]}</h1>
+                              <h1 className='w-full max-[500px]:text-xs'>
+                                {nameSkills[i]}
+                              </h1>
                               <div className='flex justify-center'>
                                 {skills.skills.map((skill, i) => {
                                   return (
@@ -123,7 +129,7 @@ export function Experience() {
                 </div>
               </CardContent>
               {project.homepage && (
-                <CardContent className='flex items-center gap-2 pb-2 pt-2'>
+                <CardContent className='flex items-center gap-2 pb-2 pt-4'>
                   <FiLink />
                   <Link
                     className='text-blue-400 hover:text-blue-200 w-full text-sm'
@@ -133,7 +139,7 @@ export function Experience() {
                   </Link>
                 </CardContent>
               )}
-              <CardContent>
+              <CardContent className='flex gap-1 flex-wrap h-16 pb-0'>
                 {project.languages_url.map((ele, index) => {
                   return (
                     <Link

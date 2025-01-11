@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { FiLink } from 'react-icons/fi'
 import Languages from './Languages'
-import { FaReact, FaGitAlt, FaGithub } from 'react-icons/fa'
-import { RiNodejsFill } from 'react-icons/ri'
-import { TbBrandVite, TbBrandRedux } from 'react-icons/tb'
 import { SiExpress, SiSequelize, SiPostgresql, SiPostman } from 'react-icons/si'
+import { FaReact, FaGitAlt, FaGithub } from 'react-icons/fa'
+import { TbBrandVite, TbBrandRedux } from 'react-icons/tb'
+import { IoExtensionPuzzleOutline } from 'react-icons/io5'
+import { RiNodejsFill } from 'react-icons/ri'
+import { FiLink } from 'react-icons/fi'
 import { Badge } from './ui/badge'
 import './Imgenreverse.css'
 
@@ -112,7 +113,10 @@ export function Projects() {
   return (
     <Card className='col-span-3'>
       <CardHeader>
-        <CardTitle>Proyectos Personales</CardTitle>
+        <CardTitle className='flex gap-2'>
+          <IoExtensionPuzzleOutline />
+          Proyectos Personales
+        </CardTitle>
       </CardHeader>
       <CardContent className='max-[420px]:px-2'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -122,7 +126,7 @@ export function Projects() {
                 <CardTitle className='text-lg'>{project?.name}</CardTitle>
               </CardHeader>
               <CardContent className='h-20 pb-0'>
-                <p className='max-[550px]:text-sm max-[440px]:text-xs max-[1010px]:text-sm'>
+                <p className='max-[550px]:text-sm max-[440px]:text-xs text-sm'>
                   {project?.description ||
                     'Proyecto para comparar precios de centros comerciales, proyecto realizado en Henry Bootcamp Genry'}
                 </p>

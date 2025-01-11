@@ -7,7 +7,7 @@ export function Education() {
         <CardTitle>Educación Profesional</CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className='list-disc pl-5 space-y-2'>
+        <ul className='list-disc pl-5 space-y-2 text-sm max-[400px]:text-xs'>
           <li>
             Técnico Redes y Comunicaciones. Instituto tecnológico IDAT.
             <p>Mayo 2016 - Junio 2018</p>
