@@ -6,7 +6,12 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Daniel - Desarrollador Full-Stack Junior',
-  description: 'Portfolio de Daniel, desarrollador full-stack junior'
+  description: 'Portfolio de Daniel, desarrollador full-stack junior',
+  icons: {
+    icon: '/fondo5.png', // Formato tradicional
+    shortcut: '/fondo5.png',
+    apple: '/fondo5.png' // Para dispositivos Apple
+  }
 }
 
 export default function RootLayout({
