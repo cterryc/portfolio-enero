@@ -9,7 +9,7 @@ import { SiExpress, SiSequelize, SiPostgresql, SiPostman } from 'react-icons/si'
 import { FaReact, FaGitAlt, FaGithub } from 'react-icons/fa'
 import { TbBrandVite, TbBrandRedux } from 'react-icons/tb'
 import { IoExtensionPuzzleOutline } from 'react-icons/io5'
-import { RiNodejsFill } from 'react-icons/ri'
+import { RiNodejsFill, RiNextjsLine, RiTailwindCssFill } from 'react-icons/ri'
 import { FiLink } from 'react-icons/fi'
 import { Badge } from './ui/badge'
 import './Imgenreverse.css'
@@ -70,6 +70,17 @@ const listaRepos = [
       <FaReact key={2} className='h-5 w-5' />,
       <TbBrandRedux key={5} className='h-5 w-5' />,
       <TbBrandVite key={6} className='h-5 w-5' />,
+      <FaGitAlt key={7} className='h-5 w-5' />,
+      <FaGithub key={8} className='h-5 w-5' />
+    ]
+  },
+  {
+    api: 'https://api.github.com/repos/cterryc/rick-mory-nextjs',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739737313/portafolio/rick-mory-nextjs720_uusk7b.png',
+    skills: [
+      <FaReact key={2} className='h-5 w-5' />,
+      <RiNextjsLine key={10} className='h-5 w-5' />,
+      <RiTailwindCssFill key={8} className='h-5 w-5' />,
       <FaGitAlt key={7} className='h-5 w-5' />,
       <FaGithub key={8} className='h-5 w-5' />
     ]
@@ -145,7 +156,7 @@ export function Projects() {
                     </div>
                   )}
                   {project.skills && (
-                    <CardContent className='back flex items-center flex-wrap gap-1 pb-2'>
+                    <CardContent className='back flex items-center flex-col gap-1 pb-2'>
                       <h2>Tecnologias usadas</h2>
                       <div>
                         {project.skills.map((skill, index) => {
@@ -180,6 +191,49 @@ export function Projects() {
               )}
             </Card>
           ))}
+          {projects.length % 2 !== 0 && (
+            <Card key={'soon'} className='grid grid-cols-1'>
+              <CardHeader>
+                <CardTitle className='text-lg'>
+                  Pronto proximo proyecto
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='flex flex-col h-20 pb-0 gap-1'>
+                <p className='w-full h-6 bg-slate-800 rounded-full'></p>
+                <p className='w-full h-6 bg-slate-800 rounded-full'></p>
+              </CardContent>
+              <CardContent className='soon-container pb-2'>
+                <div className='flipper'>
+                  <div className='front'>
+                    <Image
+                      src={
+                        'https://kzmofy8h0kyl1dp3r433.lite.vusercontent.net/placeholder.svg?height=300&width=500'
+                      }
+                      width={500}
+                      height={300}
+                      alt={'soon'}
+                      className='imagen-projects'
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <CardContent className='flex items-center gap-2 pb-2 pt-2'>
+                <FiLink />
+                <Link
+                  className='text-blue-400 hover:text-blue-200'
+                  href={'https://github.com/cterryc'}
+                >
+                  https://github.com/cterryc
+                </Link>
+              </CardContent>
+
+              <div className='flex h-16 gap-1 px-5'>
+                <p className='w-28 h-6 bg-slate-800 rounded-full'></p>
+                <p className='w-28 h-6 bg-slate-800 rounded-full'></p>
+                <p className='w-28 h-6 bg-slate-800 rounded-full'></p>
+              </div>
+            </Card>
+          )}
         </div>
       </CardContent>
     </Card>

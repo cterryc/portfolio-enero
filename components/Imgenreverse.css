@@ -8,6 +8,15 @@
   height: 260px; /* Alto del contenedor */
 }
 
+.soon-container {
+  @apply bg-contain max-h-[254px] h-max max-[1280px]:max-h-[210px];
+  @apply max-[1024px]:max-h-[145px] max-[768px]:max-h-[254px] max-[581px]:max-h-[200px];
+  @apply max-[485px]:max-h-[160px] max-[380px]:max-h-[145px];
+  perspective: 1000px; /* Permite el efecto 3D */
+  width: 100%; /* Ancho del contenedor */
+  height: 260px; /* Alto del contenedor */
+}
+
 /* Elemento que realiza el volteo */
 .flipper {
   width: 100%;

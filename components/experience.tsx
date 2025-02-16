@@ -20,7 +20,7 @@ const listaRepos = [
     description:
       'Participé en el desarrollo de la aplicación, desde la creación de las partes que manejan la información en el back hasta la interfaz que ven los usuarios.',
     api: 'https://api.github.com/repos/cterryc/grimreaper-front',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1736519838/Aythen_igi1dy.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739735833/portafolio/Aythen-720_bklwvi.png',
     skills: [
       {
         skills: [
@@ -53,7 +53,7 @@ const listaRepos = [
     description:
       'Mi primer proyecto profesional no-code fue una gran experiencia que me abrió las puertas al mundo del desarrollo web, mundo al que sigo dedicado desde entonces.',
     api: 'https://api.github.com/repos/pianti10/Bolsillo-Feliz',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1736520386/voy2-720_wf20wt.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739735833/portafolio/voy2-720_g8rgxe.png',
     skills: [
       {
         skills: [<FaWix key={7} className='h-5 w-5' />]
