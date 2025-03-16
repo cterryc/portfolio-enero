@@ -1,18 +1,14 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import Languages from './Languages'
-import { SiExpress, SiSequelize, SiPostgresql, SiPostman } from 'react-icons/si'
-import { FaReact, FaGitAlt, FaGithub } from 'react-icons/fa'
-import { TbBrandVite, TbBrandRedux } from 'react-icons/tb'
 import { IoExtensionPuzzleOutline } from 'react-icons/io5'
+import ProjectCard from './projects/ProjectCard'
+import SoonCard from './projects/SoonCard'
+import { FaReact, FaGitAlt, FaGithub } from 'react-icons/fa'
 import { RiNodejsFill, RiNextjsLine, RiTailwindCssFill } from 'react-icons/ri'
-import { FiLink } from 'react-icons/fi'
-import { Badge } from './ui/badge'
-import './Imgenreverse.css'
+import { SiPostgresql, SiExpress, SiSequelize, SiPostman } from 'react-icons/si'
+import { TbBrandRedux, TbBrandVite } from 'react-icons/tb'
 
 const listaRepos = [
   {
@@ -112,10 +108,8 @@ export function Projects() {
           ele.img = listaRepos[index].img
           ele.skills = listaRepos[index].skills
         })
-        console.log(response)
         setProjects(response)
       })
-      console.log(responses) // Aquí tienes un array con las respuestas
     } catch (error) {
       console.error('Error fetching data:', error)
     }
@@ -132,108 +126,9 @@ export function Projects() {
       <CardContent className='max-[420px]:px-2'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {projects.map((project) => (
-            <Card key={project?.name} className='grid grid-cols-1'>
-              <CardHeader>
-                <CardTitle className='text-lg'>{project?.name}</CardTitle>
-              </CardHeader>
-              <CardContent className='h-20 pb-0'>
-                <p className='max-[550px]:text-sm max-[440px]:text-xs text-sm'>
-                  {project?.description ||
-                    'Proyecto para comparar precios de centros comerciales, proyecto realizado en Henry Bootcamp Genry'}
-                </p>
-              </CardContent>
-              <CardContent className='flip-container pb-2'>
-                <div className='flipper'>
-                  {project.img && (
-                    <div className='front'>
-                      <Image
-                        src={project.img}
-                        width={500}
-                        height={300}
-                        alt={project.name}
-                        className='imagen-projects'
-                      />
-                    </div>
-                  )}
-                  {project.skills && (
-                    <CardContent className='back flex items-center flex-col gap-1 pb-2'>
-                      <h2>Tecnologias usadas</h2>
-                      <div>
-                        {project.skills.map((skill, index) => {
-                          return (
-                            <Badge className='bg-white px-1' key={index}>
-                              {skill}
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                    </CardContent>
-                  )}
-                </div>
-              </CardContent>
-              {project.homepage && (
-                <CardContent className='flex items-center gap-2 pb-2 pt-2'>
-                  <FiLink />
-                  <Link
-                    className='text-blue-400 hover:text-blue-200'
-                    href={project.homepage}
-                  >
-                    {project.homepage}
-                  </Link>
-                </CardContent>
-              )}
-
-              {project.languages_url && (
-                <Languages
-                  languages={project.languages_url}
-                  svn={project.svn_url}
-                />
-              )}
-            </Card>
+            <ProjectCard key={project?.name} project={project} />
           ))}
-          {projects.length % 2 !== 0 && (
-            <Card key={'soon'} className='grid grid-cols-1'>
-              <CardHeader>
-                <CardTitle className='text-lg'>
-                  Pronto proximo proyecto
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='flex flex-col h-20 pb-0 gap-1'>
-                <p className='w-full h-6 bg-slate-800 rounded-full'></p>
-                <p className='w-full h-6 bg-slate-800 rounded-full'></p>
-              </CardContent>
-              <CardContent className='soon-container pb-2'>
-                <div className='flipper'>
-                  <div className='front'>
-                    <Image
-                      src={
-                        'https://kzmofy8h0kyl1dp3r433.lite.vusercontent.net/placeholder.svg?height=300&width=500'
-                      }
-                      width={500}
-                      height={300}
-                      alt={'soon'}
-                      className='imagen-projects'
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardContent className='flex items-center gap-2 pb-2 pt-2'>
-                <FiLink />
-                <Link
-                  className='text-blue-400 hover:text-blue-200'
-                  href={'https://github.com/cterryc'}
-                >
-                  https://github.com/cterryc
-                </Link>
-              </CardContent>
-
-              <div className='flex h-16 gap-1 px-5'>
-                <p className='w-28 h-6 bg-slate-800 rounded-full'></p>
-                <p className='w-28 h-6 bg-slate-800 rounded-full'></p>
-                <p className='w-28 h-6 bg-slate-800 rounded-full'></p>
-              </div>
-            </Card>
-          )}
+          {projects.length % 2 !== 0 && <SoonCard />}
         </div>
       </CardContent>
     </Card>
