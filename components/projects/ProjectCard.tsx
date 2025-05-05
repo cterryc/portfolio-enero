@@ -1,8 +1,6 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
-import { FiLink } from 'react-icons/fi'
 import { ProjectsProps } from './types'
 import ProjectImage from './ProjectImage'
 import ProjectLink from './ProjectLink'

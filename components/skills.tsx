@@ -2,14 +2,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FaReact, FaGitAlt, FaGithub } from 'react-icons/fa'
 import { RiNextjsLine, RiTailwindCssLine, RiNodejsFill } from 'react-icons/ri'
-import { TbBrandVite, TbBrandRedux, TbBrandMongodb } from 'react-icons/tb'
+import {
+  TbBrandVite,
+  TbBrandRedux,
+  TbBrandMongodb,
+  TbBrandVercel
+} from 'react-icons/tb'
 import {
   SiExpress,
   SiSequelize,
   SiNestjs,
   SiPostgresql,
   SiPostman,
-  SiJsonwebtokens
+  SiJsonwebtokens,
+  SiRender
 } from 'react-icons/si'
 
 export function Skills() {
@@ -45,6 +51,8 @@ export function Skills() {
       items: [
         { name: 'Git', svg: <FaGitAlt /> },
         { name: 'GitHub', svg: <FaGithub /> },
+        { name: 'Vercel', svg: <TbBrandVercel /> },
+        { name: 'Render', svg: <SiRender /> },
         { name: 'Postman', svg: <SiPostman /> },
         { name: 'JWT', svg: <SiJsonwebtokens /> }
       ]

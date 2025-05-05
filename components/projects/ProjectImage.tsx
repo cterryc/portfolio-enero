@@ -17,10 +17,11 @@ const ProjectImage = ({ project }: ProjectImageProps) => {
           <div className='front'>
             <Image
               src={project.img}
-              width={500}
-              height={300}
+              // width={500}
+              // height={300}
+              fill
               alt={project.name}
-              className='imagen-projects'
+              className='imagen-projects object-contain'
             />
           </div>
         )}

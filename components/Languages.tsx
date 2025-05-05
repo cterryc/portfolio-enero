@@ -39,8 +39,8 @@ const Languages = ({ languages, svn }: ProjectsProps) => {
         ? array.map((language: string | number) => (
             <Link
               key={language}
-              href={svn + `/search?l=${language}`}
-              target=' _blank'
+              href={svn}
+              target='_blank'
               rel='noopener noreferrer'
             >
               <Badge className='bg-blue-800 hover:bg-blue-400 text-white'>

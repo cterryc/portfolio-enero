@@ -15,6 +15,7 @@ const ProjectLink = ({ homepage }: ProjectLinkProps) => {
       <Link
         className='text-blue-400 hover:text-blue-200'
         href={homepage}
+        target='_blank'
       >
         {homepage}
       </Link>

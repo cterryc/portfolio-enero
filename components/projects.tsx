@@ -13,7 +13,7 @@ import { TbBrandRedux, TbBrandVite } from 'react-icons/tb'
 const listaRepos = [
   {
     api: 'https://api.github.com/repos/cterryc/grimreaper-front',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1725046794/portafolio/jthrlgwhpmzywde9oq7q.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1725046794/portafolio/jthrlgwhpmzywde9oq7q.webp',
     skills: [
       <SiPostgresql key={0} className='h-5 w-5' />,
       <SiExpress key={1} className='h-5 w-5' />,
@@ -29,7 +29,7 @@ const listaRepos = [
   },
   {
     api: 'https://api.github.com/repos/pianti10/Bolsillo-Feliz',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1712559020/portafolio/hmwxoprxwzyphmu52poj.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1712559020/portafolio/hmwxoprxwzyphmu52poj.webp',
     skills: [
       <SiPostgresql key={0} className='h-5 w-5' />,
       <SiExpress key={1} className='h-5 w-5' />,
@@ -45,7 +45,7 @@ const listaRepos = [
   },
   {
     api: 'https://api.github.com/repos/cterryc/PI-Videogames-Vite',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1712559020/portafolio/zsve4caj9xzql0lotdna.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1712559020/portafolio/zsve4caj9xzql0lotdna.webp',
     skills: [
       <SiPostgresql key={0} className='h-5 w-5' />,
       <SiExpress key={1} className='h-5 w-5' />,
@@ -61,7 +61,7 @@ const listaRepos = [
   },
   {
     api: 'https://api.github.com/repos/cterryc/tic-tac-toe',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1712559019/portafolio/tdwaw7zg8l3wllakom0a.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1746421671/portafolio/tic-tac-toe-cterryc.vercel.app2_vnjuud.webp',
     skills: [
       <FaReact key={2} className='h-5 w-5' />,
       <TbBrandRedux key={5} className='h-5 w-5' />,
@@ -72,7 +72,7 @@ const listaRepos = [
   },
   {
     api: 'https://api.github.com/repos/cterryc/rick-mory-nextjs',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739737313/portafolio/rick-mory-nextjs720_uusk7b.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739737313/portafolio/rick-mory-nextjs720_uusk7b.webp',
     skills: [
       <FaReact key={2} className='h-5 w-5' />,
       <RiNextjsLine key={10} className='h-5 w-5' />,
@@ -101,7 +101,7 @@ export function Projects() {
 
   useEffect(() => {
     try {
-      const responses = Promise.all(
+      Promise.all(
         listaRepos.map((item) => fetch(item.api).then((res) => res.json()))
       ).then((response) => {
         response.forEach((ele, index) => {
