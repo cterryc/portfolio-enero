@@ -24,8 +24,8 @@ export default function Home() {
       <div className='grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4'>
         <Skills />
         <AboutMe />
-        <Projects />
         <Experience />
+        <Projects />
         <Education />
         <Contact />
         <Footer />

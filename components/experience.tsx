@@ -7,42 +7,74 @@ import { SiExpress, SiSequelize, SiPostgresql, SiPostman } from 'react-icons/si'
 import { FaReact, FaGitAlt, FaGithub, FaWix } from 'react-icons/fa'
 import { RiNodejsFill, RiNextjsFill } from 'react-icons/ri'
 import { IoBriefcaseOutline } from 'react-icons/io5'
-import { TbBrandRedux } from 'react-icons/tb'
+import { TbBrandRedux, TbBrandTypescript, TbBrandVercel } from 'react-icons/tb'
 import { FiLink } from 'react-icons/fi'
 import { Badge } from './ui/badge'
 import './Imgenreverse.css'
 
-const nameSkills = ['FrontEnd', 'BackEnd', 'DataBase', 'Tools']
-
 const listaRepos = [
+  {
+    name: 'Savior',
+    description:
+      'Desarrollé completamente este ecommerce, creando todo el diseño y todas las funcionalidades desde cero. Me encargué tanto del frontend atractivo como de toda la lógica de negocio necesaria para su funcionamiento.',
+    api: 'https://api.github.com/repos/SAVIORPERU/SAVIORPERU',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1746419358/portafolio/saviorperu.com_orql0e.webp',
+    skills: [
+      {
+        skills: [
+          <RiNextjsFill key={6} className='h-5 w-5' />,
+          <FaReact key={2} className='h-5 w-5' />,
+          <TbBrandRedux key={5} className='h-5 w-5' />,
+          <TbBrandTypescript key={10} className='h-5 w-5' />
+        ],
+        name: 'FrontEnd'
+      },
+      {
+        skills: [
+          <FaGitAlt key={7} className='h-5 w-5' />,
+          <FaGithub key={8} className='h-5 w-5' />,
+          <TbBrandVercel key={11} className='h-5 w-5' />
+        ],
+        name: 'Tools'
+      }
+    ],
+    homepage: 'https://saviorperu.com',
+    languages_url: ['TypeScript', 'CSS', 'HTML']
+  },
   {
     name: 'Aythen',
     description:
       'Participé en el desarrollo de la aplicación, desde la creación de las partes que manejan la información en el back hasta la interfaz que ven los usuarios.',
     api: 'https://api.github.com/repos/cterryc/grimreaper-front',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739735833/portafolio/Aythen-720_bklwvi.png',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739735833/portafolio/Aythen-720_bklwvi.webp',
     skills: [
       {
         skills: [
           <RiNextjsFill key={6} className='h-5 w-5' />,
           <FaReact key={2} className='h-5 w-5' />,
           <TbBrandRedux key={5} className='h-5 w-5' />
-        ]
+        ],
+        name: 'FrontEnd'
       },
       {
         skills: [
           <SiExpress key={1} className='h-5 w-5' />,
           <RiNodejsFill key={3} className='h-5 w-5' />,
           <SiSequelize key={4} className='h-5 w-5' />
-        ]
+        ],
+        name: 'BackEnd'
       },
-      { skills: [<SiPostgresql key={0} className='h-5 w-5' />] },
+      {
+        skills: [<SiPostgresql key={0} className='h-5 w-5' />],
+        name: 'DataBase'
+      },
       {
         skills: [
           <FaGitAlt key={7} className='h-5 w-5' />,
           <FaGithub key={8} className='h-5 w-5' />,
           <SiPostman key={9} className='h-5 w-5' />
-        ]
+        ],
+        name: 'Tools'
       }
     ],
     homepage: 'https://aythen.com',
@@ -56,7 +88,8 @@ const listaRepos = [
     img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739735833/portafolio/voy2-720_g8rgxe.png',
     skills: [
       {
-        skills: [<FaWix key={7} className='h-5 w-5' />]
+        skills: [<FaWix key={7} className='h-5 w-5' />],
+        name: 'FrontEnd'
       }
     ],
     homepage: 'https://voytuasesora.wixsite.com/maquillaje',
@@ -91,17 +124,16 @@ export function Experience() {
                     <div className='front'>
                       <Image
                         src={project.img}
-                        width={500}
-                        height={260}
+                        fill
                         alt={project.name}
-                        className='imagen-projects'
+                        className='imagen-projects object-contain'
                       />
                     </div>
                   )}
                   {project.skills && (
                     <CardContent className='back flex items-center flex-col gap-1 pb-0 px-1'>
                       <h2>Tecnologias usadas</h2>
-                      <div className='grid grid-cols-4 gap-x-2'>
+                      <div className='flex gap-2'>
                         {project.skills.map((skills, i) => {
                           return (
                             <div
@@ -109,7 +141,7 @@ export function Experience() {
                               className='text-sm flex flex-col w-full'
                             >
                               <h1 className='w-full max-[500px]:text-xs'>
-                                {nameSkills[i]}
+                                {skills.name}
                               </h1>
                               <div className='flex justify-center'>
                                 {skills.skills.map((skill, i) => {
@@ -134,6 +166,7 @@ export function Experience() {
                   <Link
                     className='text-blue-400 hover:text-blue-200 w-full text-sm'
                     href={project.homepage}
+                    target='_blank'
                   >
                     {project.homepage}
                   </Link>
@@ -145,7 +178,7 @@ export function Experience() {
                     <Link
                       key={index}
                       href={project.homepage}
-                      target=' _blank'
+                      target='_blank'
                       rel='noopener noreferrer'
                     >
                       <Badge className='bg-blue-800 hover:bg-blue-400 text-white'>
