@@ -28,19 +28,14 @@ const listaRepos = [
     ]
   },
   {
-    api: 'https://api.github.com/repos/pianti10/Bolsillo-Feliz',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1712559020/portafolio/hmwxoprxwzyphmu52poj.webp',
+    api: 'https://api.github.com/repos/cterryc/rick-mory-nextjs',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739737313/portafolio/rick-mory-nextjs720_uusk7b.webp',
     skills: [
-      <SiPostgresql key={0} className='h-5 w-5' />,
-      <SiExpress key={1} className='h-5 w-5' />,
       <FaReact key={2} className='h-5 w-5' />,
-      <RiNodejsFill key={3} className='h-5 w-5' />,
-      <SiSequelize key={4} className='h-5 w-5' />,
-      <TbBrandRedux key={5} className='h-5 w-5' />,
-      <TbBrandVite key={6} className='h-5 w-5' />,
+      <RiNextjsLine key={10} className='h-5 w-5' />,
+      <RiTailwindCssFill key={8} className='h-5 w-5' />,
       <FaGitAlt key={7} className='h-5 w-5' />,
-      <FaGithub key={8} className='h-5 w-5' />,
-      <SiPostman key={9} className='h-5 w-5' />
+      <FaGithub key={8} className='h-5 w-5' />
     ]
   },
   {
@@ -71,14 +66,19 @@ const listaRepos = [
     ]
   },
   {
-    api: 'https://api.github.com/repos/cterryc/rick-mory-nextjs',
-    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1739737313/portafolio/rick-mory-nextjs720_uusk7b.webp',
+    api: 'https://api.github.com/repos/pianti10/Bolsillo-Feliz',
+    img: 'https://res.cloudinary.com/dniekrmqb/image/upload/v1712559020/portafolio/hmwxoprxwzyphmu52poj.webp',
     skills: [
+      <SiPostgresql key={0} className='h-5 w-5' />,
+      <SiExpress key={1} className='h-5 w-5' />,
       <FaReact key={2} className='h-5 w-5' />,
-      <RiNextjsLine key={10} className='h-5 w-5' />,
-      <RiTailwindCssFill key={8} className='h-5 w-5' />,
+      <RiNodejsFill key={3} className='h-5 w-5' />,
+      <SiSequelize key={4} className='h-5 w-5' />,
+      <TbBrandRedux key={5} className='h-5 w-5' />,
+      <TbBrandVite key={6} className='h-5 w-5' />,
       <FaGitAlt key={7} className='h-5 w-5' />,
-      <FaGithub key={8} className='h-5 w-5' />
+      <FaGithub key={8} className='h-5 w-5' />,
+      <SiPostman key={9} className='h-5 w-5' />
     ]
   }
 ]
