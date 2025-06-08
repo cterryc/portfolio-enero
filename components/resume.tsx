@@ -7,7 +7,7 @@ import { SiReaddotcv } from 'react-icons/si'
 const Resume = () => {
   const handleButton = () => {
     window.open(
-      'https://drive.google.com/file/d/1ixGxYnTgSYMWBBHKQUXcPuNOo6uP9lVL/view?usp=sharing',
+      'https://drive.google.com/file/d/1IHo3a7SkvjJBa7GKRWfPrF68oJZvQ3QN/view',
       '_blank'
     )
   }
