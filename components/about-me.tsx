@@ -8,7 +8,7 @@ export function AboutMe() {
       </CardHeader>
       <CardContent>
         <p className='max-[1000px]:text-sm'>
-          Didfruto el ensamblaje de computadoras y comprendo la importancia de
+          Disfruto el ensamblaje de computadoras y comprendo la importancia de
           una base sólida en hardware para el desarrollo de software. Esto me
           permite tener una comprensión profunda de cómo interactúan los
           componentes de hardware y software para crear aplicaciones eficientes

@@ -13,10 +13,10 @@ interface ProjectCardProps {
 const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Card className='grid grid-cols-1'>
-      <CardHeader>
+      <CardHeader className='py-2'>
         <CardTitle className='text-lg'>{project?.name}</CardTitle>
       </CardHeader>
-      <CardContent className='h-20 pb-0'>
+      <CardContent className='h-20 pb-2 max-md:h-auto max-[810px]:h-[160px] max-xl:h-28 max-[932px]:h-[140px]'>
         <p className='max-[550px]:text-sm max-[440px]:text-xs text-sm'>
           {project?.description ||
             'Proyecto para comparar precios de centros comerciales, proyecto realizado en Henry Bootcamp Genry'}
