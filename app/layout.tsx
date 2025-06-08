@@ -5,8 +5,8 @@ import { ThemeProvider } from '@/components/theme-provider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Daniel - Desarrollador Full-Stack Junior',
-  description: 'Portfolio de Daniel, desarrollador full-stack junior',
+  title: 'Daniel - Desarrollador Full-Stack',
+  description: 'Portfolio de Daniel, desarrollador full-stack',
   icons: {
     icon: '/fondo5.png', // Formato tradicional
     shortcut: '/fondo5.png',
