@@ -8,6 +8,12 @@ import Terminal from '@/components/ui/Terminal'
 import DynamicStatusBar from '@/components/DynamicStatusBar'
 import { FilesProvider } from '@/context/FileContext'
 import { ProjectsProvider } from '@/context/ProjectsContext'
+// ChatWidget con lazy loading para optimizar bundle inicial
+import dynamic from 'next/dynamic'
+
+const ChatWidget = dynamic(() => import('@/components/ui/ChatWidget'), {
+  loading: () => null
+})
 
 // Puedes agregar metadata ahora que es un Server Component
 export const metadata = {
@@ -46,6 +52,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {/* Renderizamos el componente cliente aquí */}
               <DynamicStatusBar />
             </div>
+            {/* ChatWidget con IA - fuera del contenedor principal para posicionamiento fijo */}
+            <ChatWidget />
           </ProjectsProvider>
         </FilesProvider>
       </body>

@@ -27,7 +27,7 @@ export default function StatusBar({
   const Icon = iconMap[icon as keyof typeof iconMap] || Braces
 
   return (
-    <footer className='h-6 bg-primary flex items-center px-3 justify-between text-background-dark text-xs font-bold shrink-0 select-none z-10'>
+    <footer className='h-6 hidden md:flex bg-primary items-center px-3 justify-between text-background-dark text-xs font-bold shrink-0 select-none z-10'>
       <div className='flex items-center gap-4'>
         <div className='flex items-center gap-1 cursor-pointer hover:bg-black/10 px-1 rounded'>
           <FolderGit2 className='text-[14px] w-5 h-5' />

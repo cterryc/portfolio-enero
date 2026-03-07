@@ -13,7 +13,8 @@ import {
   ExternalLink,
   Linkedin,
   Github,
-  Mail
+  Mail,
+  FileUser
 } from 'lucide-react'
 import Link from 'next/link'
 import { useFiles } from '@/context/FileContext'
@@ -317,7 +318,8 @@ export default function SobreMi() {
               href='https://www.linkedin.com/in/developer-martel/'
               target='_blank'
               rel='noopener noreferrer'
-              className='bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white p-3 rounded-lg transition-colors'
+              className='bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white p-2 rounded-lg transition-colors'
+              title='Linkedin'
             >
               <Linkedin className='w-6 h-6' />
             </a>
@@ -325,7 +327,8 @@ export default function SobreMi() {
               href='https://github.com/cterryc'
               target='_blank'
               rel='noopener noreferrer'
-              className='bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-lg transition-colors'
+              className='bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors'
+              title='Github'
             >
               <Github className='w-6 h-6' />
             </a>
@@ -333,9 +336,19 @@ export default function SobreMi() {
               href='mailto:danyel.martel@gmail.com'
               target='_blank'
               rel='noopener noreferrer'
-              className='bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-lg transition-colors'
+              className='bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors'
+              title='Correo'
             >
               <Mail className='w-6 h-6' />
+            </a>
+            <a
+              href='https://drive.google.com/file/d/1IHo3a7SkvjJBa7GKRWfPrF68oJZvQ3QN/view'
+              target='_blank'
+              rel='noopener noreferrer'
+              className='bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors'
+              title='C.V.'
+            >
+              <FileUser className='w-6 h-6' />
             </a>
           </div>
 

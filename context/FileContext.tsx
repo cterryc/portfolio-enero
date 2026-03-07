@@ -58,7 +58,7 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && (event.key === 'ñ' || event.key === 'Ñ')) {
+      if (event.ctrlKey && (event.key === 'j' || event.key === 'J')) {
         event.preventDefault()
         setShowTerminal((prev) => !prev)
         console.log('Terminal toggled!')

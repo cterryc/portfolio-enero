@@ -98,6 +98,7 @@ export default function Terminal() {
 
   const processCommand = (command: string) => {
     const trimmedCommand = command.trim()
+    console.log(trimmedCommand)
     if (!trimmedCommand) return
 
     // Agregar al historial
@@ -263,7 +264,7 @@ export default function Terminal() {
 
         <div className='text-gray-500 text-xs mt-2 opacity-50'>
           💡 Tip: Presiona ↑/↓ para navegar por el historial, Tab para
-          autocompletar, {'"Ctrl + ñ"'} para cerrar/abrir terminal
+          autocompletar, {'"Ctrl + j"'} para cerrar/abrir terminal
         </div>
       </div>
     </div>
