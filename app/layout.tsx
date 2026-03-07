@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   // Ya no necesitamos hooks aquí
 
   return (
-    <html lang='en' className='dark'>
+    <html lang='en' className='dark' suppressHydrationWarning>
       <body className='bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-gray-300 h-screen overflow-hidden flex flex-col selection:bg-primary/30 selection:text-primary'>
         <FilesProvider>
           <ProjectsProvider>
