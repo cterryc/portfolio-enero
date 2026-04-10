@@ -49,11 +49,8 @@ export async function POST(req: Request) {
       }),
       prisma.skill.findMany({
         select: {
-          category: true,
-          label: true,
-          status: true,
-          val: true,
-          color: true
+          key: true,
+          value: true
         }
       }),
       prisma.commit.findMany({
@@ -85,21 +82,9 @@ export async function POST(req: Request) {
       )
       .join('\n')
 
-    // Construir contexto de habilidades agrupadas por categoría
-    const skillsByCategory = skills.reduce<Record<string, typeof skills>>(
-      (acc, skill) => {
-        const cat = skill.category ?? 'General'
-        if (!acc[cat]) acc[cat] = []
-        acc[cat].push(skill)
-        return acc
-      },
-      {}
-    )
-    const skillsContext = Object.entries(skillsByCategory)
-      .map(
-        ([category, items]) =>
-          `**${category}:** ${items.map((s) => `${s.label} (nivel ${s.val}, ${s.status})`).join(' | ')}`
-      )
+    // Construir contexto de habilidades (key - value)
+    const skillsContext = skills
+      .map((skill) => `**${skill.key}:** ${(skill.value as string[]).join(', ')}`)
       .join('\n')
 
     // Construir contexto de experiencia laboral

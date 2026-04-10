@@ -1,65 +1,60 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const category = searchParams.get('category')
-
-    // Filtrar por categoría si se proporciona el query param
-    const skills = await prisma.skill.findMany({
-      where: category ? { category } : undefined,
-      orderBy: {
-        id: 'asc'
-      }
-    })
-
-    return NextResponse.json(skills)
-  } catch (error) {
-    console.error(error)
-    return NextResponse.json(
-      { error: 'Error al obtener habilidades' },
-      { status: 500 }
-    )
-  }
-}
+import { ENV } from '@/config/env'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    // 1. Si recibimos un array, usamos createMany
-    if (Array.isArray(body)) {
-      const skills = await prisma.skill.createMany({
-        data: body.map((skill) => ({
-          category: skill.category,
-          label: skill.label,
-          status: skill.status,
-          val: skill.val,
-          color: skill.color
-        })),
-        skipDuplicates: true // Opcional: evita errores si ya existe una habilidad idéntica (si tienes constraints unique)
-      })
-
-      return NextResponse.json(skills, { status: 201 })
+    // Verificación de contraseña de administrador
+    if (!body.adminPassword || body.adminPassword !== ENV.ADMIN_PASSWORD) {
+      console.error('Admin Password Incorrect')
+      return NextResponse.json(
+        { error: 'Admin Password Incorrect' },
+        { status: 500 }
+      )
     }
 
-    // 2. Si recibimos un objeto único, usamos create
-    const skill = await prisma.skill.create({
-      data: {
-        category: body.category,
-        label: body.label,
-        status: body.status,
-        val: body.val,
-        color: body.color
-      }
-    })
+    const skillsData = body.skillsData
 
-    return NextResponse.json(skill, { status: 201 })
-  } catch (error) {
-    console.error('Error al procesar habilidad(es):', error)
+    if (!skillsData || typeof skillsData !== 'object') {
+       return NextResponse.json(
+        { error: 'Formato de skillsData inválido' },
+        { status: 400 }
+      )
+    }
+
+    // 1. Array temporal para los objetos { key, value }
+    const recordsToInsert: { key: string; value: string[] }[] = []
+
+    // 2. Transforma el objeto de entrada en arreglos
+    // Por ejemplo: { frontend: ['React'], backend: ['Node'] } ->
+    // [{ key: 'frontend', value: ['React'] }, { key: 'backend', value: ['Node'] }]
+    for (const [key, value] of Object.entries(skillsData)) {
+      if (Array.isArray(value)) {
+        recordsToInsert.push({
+          key,
+          value: value.map(v => String(v)) // aseguramos que todos sean string
+        })
+      }
+    }
+
+    // 3. Ejecutar transacción: borrar todo y crear de nuevo
+    await prisma.$transaction([
+      prisma.skill.deleteMany(),
+      prisma.skill.createMany({
+        data: recordsToInsert
+      })
+    ])
+
     return NextResponse.json(
-      { error: 'Error al crear habilidad' },
+      { message: 'Skills actualizados correctamente', count: recordsToInsert.length },
+      { status: 201 }
+    )
+  } catch (error) {
+    console.error('Error al guardar skills:', error)
+    return NextResponse.json(
+      { error: 'Error al actualizar skills en la base de datos' },
       { status: 500 }
     )
   }

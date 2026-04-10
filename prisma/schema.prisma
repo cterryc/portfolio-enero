@@ -61,12 +61,9 @@ model Commit {
 }
 
 model Skill {
-  id       Int    @id @default(autoincrement())
-  category String // 'frontend' o 'backend'  
-  label    String
-  status   String
-  val      String
-  color    String
+  id    Int      @id @default(autoincrement())
+  key   String
+  value String[]
 
   @@map("skills")
 }
