@@ -14,7 +14,8 @@ import {
   Linkedin,
   Github,
   Mail,
-  FileUser
+  FileUser,
+  Medal
 } from 'lucide-react'
 import Link from 'next/link'
 import { useFiles } from '@/context/FileContext'
@@ -156,9 +157,9 @@ export default function SobreMi() {
           {/* Sección: Sobre mí */}
           <div className='mb-10'>
             <div className='flex items-center gap-3 mb-6'>
-              <h2 className='text-lg font-bold text-white'>
-                Full Stack Developer - 2 años construyendo aplicaciones
-                escalables con React, Node.js y PostgreSQL.
+              <h2 className='text-lg font-bold text-white md:text-3xl flex items-center gap-2'>
+                <Medal className='text-primary w-10 h-10' />
+                Full Stack Developer.
               </h2>
             </div>
             <div className='flex items-center gap-3 mb-6'>

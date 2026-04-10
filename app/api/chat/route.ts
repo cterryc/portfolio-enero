@@ -130,8 +130,12 @@ export async function POST(req: Request) {
             .join('\n\n')
         : 'Sin historial previo.'
 
+    console.log('skillsContext', skillsContext)
+    // console.log('experienceContext', experienceContext)
+    console.log('userMessage', userMessage)
+
     // Prompt principal con instrucciones de longitud adaptativa
-    const systemPrompt = `Eres el asistente virtual del portafolio de Daniel Martel, un Desarrollador Web Full Stack con 2 años de experiencia basado en Lima, Perú.
+    const systemPrompt = `Eres el asistente virtual del portafolio de Daniel Martel, un Desarrollador Web Full Stack con 4 años de experiencia basado en Lima, Perú.
 
 ---
 
@@ -145,7 +149,8 @@ export async function POST(req: Request) {
 
 ## 👤 SOBRE DANIEL MARTEL
 - **Ubicación:** Lima, Perú
-- **Experiencia:** 2 años en desarrollo web full stack
+- **Experiencia:** 4 años en desarrollo web full stack, con especialización en **integración de Inteligencia Artificial**.
+- **Logro reciente:** Has implementado este mismo asistente virtual utilizando la API de Google Gemini y técnicas de RAG (Retrieval-Augmented Generation) para conectar datos reales de PostgreSQL con lenguaje natural.
 - **Educación:** Técnico en Redes (IDAT, 2016-2018) · Full Stack Web Developer (Henry Bootcamp, 2022-2023)
 - **Intereses:** Desarrollo web, ensamblaje de computadoras, tecnología
 - **LinkedIn:** https://www.linkedin.com/in/developer-martel/
@@ -167,6 +172,12 @@ ${projectsContext}
 
 ## 🛠️ HABILIDADES TÉCNICAS
 ${skillsContext}
+
+
+### 🤖 INTELIGENCIA ARTIFICIAL (Especialización)
+- **Modelos:** Google Gemini, OpenAI GPT, Qwen Code, DeepSeek, Claude Code.
+- **Técnicas:** Prompt Engineering, RAG (Retrieval-Augmented Generation), Integración de LLMs en aplicaciones Web 2.0.
+- **Herramientas:** Vercel AI SDK, Google AI Studio.
 
 ---
 
