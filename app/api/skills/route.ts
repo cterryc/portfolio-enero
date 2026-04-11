@@ -2,6 +2,26 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { ENV } from '@/config/env'
 
+export async function GET() {
+  try {
+    const skills = await prisma.skill.findMany()
+    
+    // Transformar de [{key: 'frontend', value: [...]}, ...] a {frontend: [...], ...}
+    const skillsObject = skills.reduce((acc, curr) => {
+      acc[curr.key] = curr.value
+      return acc
+    }, {} as Record<string, string[]>)
+
+    return NextResponse.json(skillsObject)
+  } catch (error) {
+    console.error('Error al obtener skills:', error)
+    return NextResponse.json(
+      { error: 'Error al obtener skills de la base de datos' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()

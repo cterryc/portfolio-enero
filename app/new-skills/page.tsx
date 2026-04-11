@@ -1,397 +1,252 @@
 'use client'
 
-import PasswordModal from '@/components/PasswordModal'
-import { Editor } from '@monaco-editor/react'
 import { useState, useEffect } from 'react'
+import { 
+  Monitor, 
+  Server, 
+  Database, 
+  Wrench, 
+  Plus, 
+  X, 
+  Save, 
+  Loader2,
+  AlertCircle
+} from 'lucide-react'
+import PasswordModal from '@/components/PasswordModal'
 import toast, { Toaster } from 'react-hot-toast'
+import { motion, AnimatePresence } from 'framer-motion'
 
-// Componente principal
-export default function SkillsJSONEditor() {
-  const [inputRaw, setInputRaw] = useState('')
-  const [jsonEdit, setJsonEdit] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [showInput, setShowInput] = useState(true)
-  const [showPasswordModal, setShowPasswordModal] = useState(false)
+// Categorías fijas
+const CATEGORIES = [
+  { id: 'frontend', label: 'Frontend', icon: Monitor, color: 'text-primary' },
+  { id: 'backend', label: 'Backend', icon: Server, color: 'text-blue-400' },
+  { id: 'basesDeDatos', label: 'Bases de Datos', icon: Database, color: 'text-green-400' },
+  { id: 'herramientas', label: 'Herramientas', icon: Wrench, color: 'text-purple-400' }
+]
+
+export default function SkillsManager() {
+  const [skills, setSkills] = useState<Record<string, string[]>>({
+    frontend: [],
+    backend: [],
+    basesDeDatos: [],
+    herramientas: []
+  })
+  const [loading, setLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [newSkillInputs, setNewSkillInputs] = useState<Record<string, string>>({})
+  const [hasChanges, setHasChanges] = useState(false)
 
-  // Efecto para limpiar errores cuando se cambia el input
+  // Cargar skills iniciales
   useEffect(() => {
-    if (inputRaw.trim() && error) {
-      setError(null)
-    }
-  }, [inputRaw, error])
+    fetchSkills()
+  }, [])
 
-  // Botón 1: Convertir
-  const handleConvertir = () => {
-    if (!inputRaw.trim()) {
-      setError('Por favor, introduce un objeto JavaScript para convertir.')
+  const fetchSkills = async () => {
+    try {
+      const res = await fetch('/api/skills')
+      if (res.ok) {
+        const data = await res.json()
+        // Asegurar que todas las categorías existan
+        const fullData = {
+          frontend: data.frontend || [],
+          backend: data.backend || [],
+          basesDeDatos: data.basesDeDatos || [],
+          herramientas: data.herramientas || []
+        }
+        setSkills(fullData)
+      }
+    } catch (err) {
+      console.error('Error fetching skills:', err)
+      toast.error('Error al cargar skills')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddSkill = (categoryId: string) => {
+    const value = newSkillInputs[categoryId]?.trim()
+    if (!value) return
+
+    if (skills[categoryId].includes(value)) {
+      toast.error('Esta habilidad ya existe en esta categoría')
       return
     }
 
-    try {
-      setError(null)
-      // Usamos new Function para interpretar el "código" pegado
-      const objeto = new Function(`return ${inputRaw}`)()
-
-      // Lo convertimos a JSON "bonito" (con indentación de 2 espacios)
-      const jsonString = JSON.stringify(objeto, null, 2)
-
-      setJsonEdit(jsonString) // Lo pasamos al segundo campo editable
-      setShowInput(false) // Ocultamos el textarea
-    } catch (err) {
-      console.error(err)
-      setError(
-        'Error de sintaxis: Verifica que el objeto esté bien escrito. Asegúrate de que sea un json válido.'
-      )
-    }
+    setSkills(prev => ({
+      ...prev,
+      [categoryId]: [...prev[categoryId], value]
+    }))
+    setNewSkillInputs(prev => ({ ...prev, [categoryId]: '' }))
+    setHasChanges(true)
   }
 
-  // Botón para volver a editar el texto original
-  const handleVolverAEditar = () => {
-    setShowInput(true)
+  const handleRemoveSkill = (categoryId: string, skillToRemove: string) => {
+    setSkills(prev => ({
+      ...prev,
+      [categoryId]: prev[categoryId].filter(s => s !== skillToRemove)
+    }))
+    setHasChanges(true)
   }
 
-  // Botón para cancelar
-  const handleCancelar = () => {
-    setJsonEdit('')
-    setShowInput(true)
-    setError(null)
-  }
-
-  // Botón para abrir modal de confirmación
-  const handleAbrirModalGuardar = () => {
-    try {
-      // Validamos que el JSON editado sea válido
-      JSON.parse(jsonEdit)
-      setShowPasswordModal(true)
-    } catch (err) {
-      console.error(err)
-
-      setError(
-        'El JSON editado tiene errores de formato. Por favor, corrígelo antes de guardar.'
-      )
-    }
-  }
-
-  // Función para guardar con contraseña
-  const handleGuardarConPassword = async (password: string) => {
+  const handleSave = async (password: string) => {
     setIsSaving(true)
-
     try {
-      const dataParaEnviar = JSON.parse(jsonEdit)
-
-      // Agregamos la contraseña al objeto a enviar
-      const dataConPassword = {
-        skillsData: dataParaEnviar,
-        adminPassword: password
-      }
-
-      const res = await fetch('/api/skills', { // AQUI ES LA NUEVA API
+      const res = await fetch('/api/skills', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataConPassword)
+        body: JSON.stringify({
+          skillsData: skills,
+          adminPassword: password
+        })
       })
 
       if (res.ok) {
+        toast.success('Skills sincronizados con éxito')
+        setHasChanges(false)
         setShowPasswordModal(false)
-        console.log('Skills guardados con éxito en la base de datos')
-        toast.success('¡Skills guardados con éxito en la base de datos!')
       } else {
         const data = await res.json()
-        console.error(data)
-        throw new Error(data.error || 'Error desconocido al guardar skills.')
+        throw new Error(data.error || 'Error al guardar')
       }
     } catch (err) {
-      console.error(err)
-      const errorInstance = err instanceof Error ? err.message : err
-      toast.error(errorInstance as string)
+      toast.error(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsSaving(false)
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    )
+  }
+
   return (
-    <div className='min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-8'>
-      <Toaster
-        toastOptions={{
-          duration: 8000,
-          className: 'w-96',
-          success: { icon: '✅' },
-          error: { icon: '❌' }
-        }}
-      />
-      <div className='max-w-6xl mx-auto'>
-        <header className='mb-8 md:mb-12'>
-          <h1 className='text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2'>
-            Actualizar Mis Skills
-          </h1>
+    <div className="min-h-screen bg-background-dark p-6 md:p-10 font-sans">
+      <Toaster position="bottom-right" />
+      
+      <div className="max-w-6xl mx-auto">
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+              <Wrench className="text-primary w-8 h-8" />
+              Skills Manager
+            </h1>
+            <p className="text-gray-400">
+              Gestiona tu stack tecnológico mediante un sistema interactivo de etiquetas.
+            </p>
+          </div>
+          
+          <button
+            onClick={() => setShowPasswordModal(true)}
+            disabled={!hasChanges || isSaving}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg ${
+              hasChanges 
+                ? 'bg-primary text-background-dark hover:scale-105 hover:shadow-primary/20' 
+                : 'bg-border-dark text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            Sincronizar con DB
+            {hasChanges && (
+              <span className="flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-background-dark opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-background-dark"></span>
+              </span>
+            )}
+          </button>
         </header>
 
-        <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden'>
-          {/* Paso 1: Pegar */}
-          {showInput && (
-            <div className='p-6 border-b border-gray-200 dark:border-gray-700 transition-all duration-300'>
-              <div className='flex items-center justify-between mb-4'>
-                <h2 className='text-xl font-semibold text-gray-800 dark:text-white'>
-                  Paso 1: Introduce tu objeto de Skills (lib/skills.ts)
-                </h2>
-                <div className='text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full'>
-                  {inputRaw.length} caracteres
-                </div>
-              </div>
-
-              <div className='mb-4'>
-                <textarea
-                  placeholder={`// Pega el objeto 'tecnologias' aquí...
-// Ejemplo:
-{
-  frontend: ['React.js', 'Next.js'],
-  backend: ['Node.js', 'Express'],
-  basesDeDatos: ['PostgreSQL'],
-  herramientas: ['Git']
-}`}
-                  value={inputRaw}
-                  onChange={(e) => setInputRaw(e.target.value)}
-                  className='w-full h-64 font-mono text-sm p-4 rounded-xl border border-gray-300 dark:border-gray-600 
-                    bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all
-                    resize-none'
-                  spellCheck='false'
-                />
-              </div>
-
-              <div className='flex flex-col sm:flex-row gap-3'>
-                <button
-                  onClick={handleConvertir}
-                  className='flex-1 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-medium py-3.5 px-6 
-                    rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg
-                    flex items-center justify-center'
-                >
-                  <svg
-                    className='w-5 h-5 mr-2'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
-                    />
-                  </svg>
-                  Convertir a JSON
-                </button>
-
-                <button
-                  onClick={() => setInputRaw('')}
-                  className='px-6 py-3.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 
-                    hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium'
-                >
-                  Limpiar
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Paso 2: Editar JSON resultante */}
-          {jsonEdit && !showInput && (
-            <div className='transition-all duration-300'>
-              <div className='p-6 border-b border-gray-200 dark:border-gray-700'>
-                <div className='flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4'>
-                  <div>
-                    <h2 className='text-xl font-semibold text-gray-800 dark:text-white mb-1'>
-                      Paso 2: Edita el JSON resultante
-                    </h2>
-                    <p className='text-gray-600 dark:text-gray-400 text-sm'>
-                      Usa el editor para modificar el JSON. El texto se ajusta
-                      automáticamente (Alt+Z).
-                    </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon
+            return (
+              <motion.div
+                key={cat.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-panel-dark border border-border-dark rounded-2xl p-6 hover:border-border-dark/80 transition-all group"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg bg-background-dark border border-border-dark ${cat.color}`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">{cat.label}</h2>
                   </div>
-
-                  <button
-                    onClick={handleVolverAEditar}
-                    className='flex items-center justify-center px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 
-                      text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium'
-                  >
-                    <svg
-                      className='w-4 h-4 mr-2'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        d='M10 19l-7-7m0 0l7-7m-7 7h18'
-                      />
-                    </svg>
-                    Volver a editar
-                  </button>
+                  <span className="text-xs font-mono text-gray-500 bg-background-dark px-2 py-1 rounded-md border border-border-dark">
+                    {skills[cat.id].length} items
+                  </span>
                 </div>
 
-                <div className='rounded-xl overflow-hidden border border-gray-300 dark:border-gray-600 shadow-lg'>
-                  <Editor
-                    height='60vh'
-                    defaultLanguage='json'
-                    value={jsonEdit}
-                    theme='vs-dark'
-                    onChange={(value) => {
-                      setJsonEdit(value || '')
-                    }}
-                    options={{
-                      wordWrap: 'on',
-                      wrappingStrategy: 'advanced',
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      formatOnPaste: true,
-                      formatOnType: true
-                    }}
+                <div className="flex flex-wrap gap-2 mb-6 min-h-[100px] content-start">
+                  <AnimatePresence>
+                    {skills[cat.id].map((skill) => (
+                      <motion.span
+                        key={skill}
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-background-dark border border-border-dark text-gray-300 rounded-lg text-sm group/chip hover:border-primary/50 transition-colors"
+                      >
+                        {skill}
+                        <button
+                          onClick={() => handleRemoveSkill(cat.id, skill)}
+                          className="text-gray-500 hover:text-red-400 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.span>
+                    ))}
+                  </AnimatePresence>
+                  
+                  {skills[cat.id].length === 0 && (
+                    <div className="w-full flex flex-col items-center justify-center py-4 border-2 border-dashed border-border-dark/50 rounded-xl">
+                      <p className="text-xs text-gray-600 italic">No hay skills en esta categoría</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative mt-auto">
+                  <input
+                    type="text"
+                    placeholder="Añadir nueva skill..."
+                    value={newSkillInputs[cat.id] || ''}
+                    onChange={(e) => setNewSkillInputs(prev => ({ ...prev, [cat.id]: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddSkill(cat.id)}
+                    className="w-full bg-background-dark border border-border-dark rounded-xl py-3 pl-4 pr-12 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-gray-600"
                   />
-                </div>
-              </div>
-
-              <div className='p-6'>
-                <div className='flex flex-col sm:flex-row gap-4'>
                   <button
-                    onClick={handleAbrirModalGuardar}
-                    className='flex-1 bg-linear-to-r from-green-600 to-emerald-600 text-white font-medium py-3.5 px-6 
-                      rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg
-                      flex items-center justify-center'
+                    onClick={() => handleAddSkill(cat.id)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-primary transition-colors"
                   >
-                    <svg
-                      className='w-5 h-5 mr-2'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        d='M5 13l4 4L19 7'
-                      />
-                    </svg>
-                    Guardar en Base de Datos
-                  </button>
-
-                  <button
-                    onClick={handleCancelar}
-                    className='flex-1 px-6 py-3.5 rounded-xl border border-red-300 dark:border-red-700 
-                      text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 
-                      transition-colors font-medium flex items-center justify-center'
-                  >
-                    <svg
-                      className='w-5 h-5 mr-2'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        d='M6 18L18 6M6 6l12 12'
-                      />
-                    </svg>
-                    Cancelar
+                    <Plus className="w-5 h-5" />
                   </button>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Mensaje de error */}
-          {error && (
-            <div className='mx-6 mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'>
-              <div className='flex items-start'>
-                <div className='shrink-0'>
-                  <svg
-                    className='h-5 w-5 text-red-600 dark:text-red-400'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                    />
-                  </svg>
-                </div>
-                <div className='ml-3'>
-                  <h3 className='text-sm font-medium text-red-800 dark:text-red-300'>
-                    Error de conversión
-                  </h3>
-                  <div className='mt-2 text-sm text-red-700 dark:text-red-400'>
-                    <p>{error}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Estado cuando no hay contenido */}
-          {!jsonEdit && !showInput && (
-            <div className='p-12 text-center'>
-              <div className='mx-auto max-w-md'>
-                <div className='mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-6'>
-                  <svg
-                    className='h-8 w-8 text-blue-600 dark:text-blue-400'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                    />
-                  </svg>
-                </div>
-                <h3 className='text-xl font-medium text-gray-800 dark:text-white mb-2'>
-                  Esperando entrada de datos
-                </h3>
-                <p className='text-gray-600 dark:text-gray-400 mb-8'>
-                  Introduce un objeto JavaScript en el campo de arriba y haz
-                  clic en {'Convertir a JSON'}para comenzar.
-                </p>
-                <button
-                  onClick={() => setShowInput(true)}
-                  className='inline-flex items-center px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 
-                    text-white font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md'
-                >
-                  <svg
-                    className='w-4 h-4 mr-2'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-                    />
-                  </svg>
-                  Comenzar de nuevo
-                </button>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )
+          })}
         </div>
+
+        {hasChanges && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-10 p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-center gap-3 text-primary text-sm"
+          >
+            <AlertCircle className="w-5 h-5" />
+            Tienes cambios sin sincronizar. No olvides guardar antes de salir.
+          </motion.div>
+        )}
       </div>
 
-      {/* Modal para confirmación con contraseña */}
       <PasswordModal
         isOpen={showPasswordModal}
         onClose={() => setShowPasswordModal(false)}
-        onConfirm={handleGuardarConPassword}
+        onConfirm={handleSave}
         isLoading={isSaving}
       />
     </div>

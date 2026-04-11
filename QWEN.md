@@ -33,9 +33,17 @@ portfolio-enero-2026/
 ├── app/                      # App Router (Next.js 16)
 │   ├── [id]/page.tsx         # Página dinámica de proyectos
 │   ├── api/                  # Rutas de API
+│   │   ├── chat/             # API de chat con IA (Gemini)
+│   │   ├── commits/          # API para gestión de experiencia (commits)
+│   │   ├── projects/         # API para CRUD de proyectos
+│   │   ├── sendmail/         # API para envío de correos (contacto)
+│   │   └── skills/           # API para gestión de habilidades
 │   ├── contact/              # Página de contacto
 │   ├── experience/           # Página de experiencia
 │   ├── skills/               # Página de habilidades
+│   ├── new-project/          # Crear nuevo proyecto (admin)
+│   ├── new-skills/           # Editor de habilidades JSON (admin)
+│   ├── delete-project/       # Eliminar proyecto (admin)
 │   ├── layout.tsx            # Layout raíz con providers
 │   ├── page.tsx              # Página de inicio (Sobre mí)
 │   └── globals.css           # Estilos globales
@@ -55,6 +63,7 @@ portfolio-enero-2026/
 │   ├── generated/prisma/     # Cliente Prisma generado
 │   ├── prisma.ts             # Configuración de Prisma
 │   ├── projects.ts           # Utilidades de proyectos
+│   ├── skills.ts             # Datos y tipos de habilidades
 │   ├── types.ts              # Definiciones de tipos TypeScript
 │   └── data.ts               # Datos estáticos (skills, commits)
 ├── prisma/
@@ -64,10 +73,8 @@ portfolio-enero-2026/
 │   └── env.ts                # Configuración de variables de entorno
 ├── public/                   # Assets estáticos
 ├── services/                 # Servicios externos
-└── app/
-    └── api/
-        └── chat/
-            └── route.ts      # API de chat con IA (Gemini + Prisma)
+│   └── sendMail.service.ts   # Servicio de envío de emails
+└── ...
 ```
 
 ## Comandos de Desarrollo
@@ -89,7 +96,7 @@ npm start
 npm run lint
 ```
 
-## Variables de Entorno
+## Variables de Envorno
 
 El proyecto requiere las siguientes variables definidas en `.env`:
 
@@ -109,10 +116,10 @@ GEMINI_API_KEY=  # Obtener en: https://aistudio.google.com/apikey
 
 ### Modelos
 
-- **Project**: Proyectos del portfolio (título, descripción, tecnologías, snippet de código, stats)
+- **Project**: Proyectos del portfolio (título, descripción larga, tecnologías, features, snippet de código JSON, stats)
 - **ProjectStat**: Métricas de proyectos (Performance, SEO, Accesibilidad, Commits)
-- **Commit**: Experiencia laboral representada como commits de Git
-- **Skill**: Habilidades técnicas categorizadas (frontend/backend)
+- **Commit**: Experiencia laboral representada como commits de Git (hash, rol, compañía, detalles JSON)
+- **Skill**: Habilidades técnicas almacenadas por categoría (`key`) y lista de tecnologías (`value[]`)
 
 ## Convenciones de Desarrollo
 
@@ -125,6 +132,7 @@ GEMINI_API_KEY=  # Obtener en: https://aistudio.google.com/apikey
 ### Estilos (Tailwind CSS v4)
 
 - **Dark mode**: `class` (forzado en `html` con `className='dark'`)
+- **Configuración**: Usa `@tailwindcss/postcss`
 - **Colores personalizados**:
   - `primary`: #13ec80 (verde neón)
   - `background-light`: #f6f8f7
@@ -135,7 +143,7 @@ GEMINI_API_KEY=  # Obtener en: https://aistudio.google.com/apikey
 
 ### ESLint + Prettier
 
-- **ESLint**: Configuración Next.js con TypeScript
+- **ESLint**: Configuración Next.js con TypeScript (v9)
 - **Prettier**:
   - `singleQuote`: true
   - `jsxSingleQuote`: true
@@ -148,6 +156,7 @@ GEMINI_API_KEY=  # Obtener en: https://aistudio.google.com/apikey
 - **Client Components**: Marcados con `'use client'` cuando usan hooks o interactividad
 - **Estado Global**: Context API (`FileContext`, `ProjectsContext`)
 - **Layout**: Layout raíz en `app/layout.tsx` con providers anidados
+- **Base de Datos**: PostgreSQL con adaptador `@prisma/adapter-pg`
 
 ## Rutas de la Aplicación
 
@@ -155,13 +164,17 @@ GEMINI_API_KEY=  # Obtener en: https://aistudio.google.com/apikey
 |------|-------------|
 | `/` | Página de inicio (Sobre mí) |
 | `/experience` | Experiencia laboral (formato Git commits) |
-| `/skills` | Habilidades técnicas |
+| `/skills` | Habilidades técnicas categorizadas |
 | `/contact` | Formulario de contacto |
 | `/[id]` | Página dinámica de proyecto |
+| `/new-project` | **Project Studio**: Gestor avanzado con Split View y formularios interactivos |
+| `/new-skills` | **Skills Board**: Gestión de habilidades mediante tarjetas y chips |
+| `/delete-project` | Eliminar proyecto (admin) |
 | `/api/projects` | API para CRUD de proyectos |
 | `/api/chat` | API para chat con IA (Gemini + contexto Prisma) |
-| `/new-project` | Crear nuevo proyecto (admin) |
-| `/delete-project` | Eliminar proyecto (admin) |
+| `/api/skills` | API para gestión de habilidades (GET/POST) |
+| `/api/commits` | API para gestión de experiencia (commits) |
+| `/api/sendmail` | API para procesamiento de correos |
 
 ## Componentes Clave
 
@@ -223,9 +236,21 @@ useProjects() // projects, projectsErrorFetch, removeProject
   - Envío con tecla Enter
   - Área táctil de 44px mínimo (accesibilidad móvil)
 - **Responsive**: Optimizado para 375×667px (iPhone SE/5)
+- **Contexto IA**: La API `/api/chat` inyecta contexto desde Prisma (proyectos, skills, commits) en cada request
+
+### Administración de Skills (`app/new-skills/page.tsx`)
+- **Dashboard Interactivo**: Sistema de tarjetas por categoría (Frontend, Backend, etc.).
+- **Gestión de Chips**: Permite añadir skills mediante inputs rápidos y eliminarlas con un clic.
+- **Sincronización**: Botón de guardado global con feedback visual de cambios pendientes.
+
+### Project Studio (`app/new-project/page.tsx`)
+- **Split View Interface**: Explorador de proyectos a la izquierda y editor detallado a la derecha.
+- **Formulario Inteligente**: Inputs específicos para metadatos, sistema de tags para tecnologías/features y editor Monaco integrado solo para snippets de código.
+- **Flujo CRUD**: Soporta creación (`POST`) y actualización (`PUT`) de forma fluida.
+- **Seguridad**: Todas las acciones de escritura están protegidas por `PasswordModal`.
 
 ## Onboarding
-
+...
 El proyecto incluye un tour guiado con **driver.js** que se muestra en la primera visita (almacenado en `localStorage` como `driverGuide`).
 
 ## Despliegue

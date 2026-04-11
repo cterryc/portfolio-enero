@@ -1,405 +1,501 @@
 'use client'
 
-import PasswordModal from '@/components/PasswordModal'
-import { Editor } from '@monaco-editor/react'
 import { useState, useEffect } from 'react'
+import { 
+  FolderCode, 
+  Plus, 
+  Save, 
+  Trash2, 
+  Globe, 
+  Github, 
+  Image as ImageIcon, 
+  Layout, 
+  Settings, 
+  ChevronRight,
+  Code2,
+  Loader2,
+  X,
+  FileJson,
+  Edit3,
+  AlertCircle
+} from 'lucide-react'
+import { Editor } from '@monaco-editor/react'
+import PasswordModal from '@/components/PasswordModal'
+import PasswordModalDelete from '@/components/PasswordModalDelete'
 import toast, { Toaster } from 'react-hot-toast'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Project } from '@/lib/types'
 
-// Componente principal
-export default function ConvertidorJSON() {
-  const [inputRaw, setInputRaw] = useState('')
-  const [jsonEdit, setJsonEdit] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [showInput, setShowInput] = useState(true)
-  const [showPasswordModal, setShowPasswordModal] = useState(false)
+const INITIAL_PROJECT_STATE: Partial<Project> = {
+  id: '',
+  title: '',
+  description: '',
+  longDescription: '',
+  liveUrl: '',
+  repoUrl: '',
+  imageUrl: '',
+  technologies: [],
+  features: [],
+  stats: [],
+  codeSnippet: {
+    file: 'index.tsx',
+    language: 'typescript',
+    lines: []
+  }
+}
+
+export default function ProjectStudio() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProject, setSelectedProject] = useState<Partial<Project>>(INITIAL_PROJECT_STATE)
+  const [loading, setLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [viewMode, setViewMode] = useState<'studio' | 'json'>('studio')
 
-  // Efecto para limpiar errores cuando se cambia el input
+  // Inputs temporales para chips
+  const [techInput, setTechInput] = useState('')
+  const [featureInput, setFeatureInput] = useState('')
+
   useEffect(() => {
-    if (inputRaw.trim() && error) {
-      setError(null)
-    }
-  }, [inputRaw, error])
+    fetchProjects()
+  }, [])
 
-  // Botón 1: Convertir
-  const handleConvertir = () => {
-    if (!inputRaw.trim()) {
-      setError('Por favor, introduce un objeto JavaScript para convertir.')
-      return
-    }
-
+  const fetchProjects = async () => {
     try {
-      setError(null)
-      // Usamos new Function para interpretar el "código" pegado
-      const objeto = new Function(`return ${inputRaw}`)()
-
-      // Lo convertimos a JSON "bonito" (con indentación de 2 espacios)
-      const jsonString = JSON.stringify(objeto, null, 2)
-
-      setJsonEdit(jsonString) // Lo pasamos al segundo campo editable
-      setShowInput(false) // Ocultamos el textarea
-    } catch (err) {
-      console.error(err)
-      setError(
-        'Error de sintaxis: Verifica que el objeto esté bien escrito. Asegúrate de que sea un objeto JavaScript válido.'
-      )
-    }
-  }
-
-  // Botón para volver a editar el texto original
-  const handleVolverAEditar = () => {
-    setShowInput(true)
-  }
-
-  // Botón para cancelar
-  const handleCancelar = () => {
-    setJsonEdit('')
-    setShowInput(true)
-    setError(null)
-  }
-
-  // Botón para abrir modal de confirmación
-  const handleAbrirModalGuardar = () => {
-    try {
-      // Validamos que el JSON editado sea válido
-      JSON.parse(jsonEdit)
-      setShowPasswordModal(true)
-    } catch (err) {
-      console.error(err)
-
-      setError(
-        'El JSON editado tiene errores de formato. Por favor, corrígelo antes de guardar.'
-      )
-    }
-  }
-
-  // Función para guardar con contraseña
-  const handleGuardarConPassword = async (password: string) => {
-    setIsSaving(true)
-
-    try {
-      const dataParaEnviar = JSON.parse(jsonEdit)
-
-      // Agregamos la contraseña al objeto a enviar
-      const dataConPassword = {
-        projects: dataParaEnviar,
-        adminPassword: password
+      const res = await fetch('/api/projects')
+      if (res.ok) {
+        const data = await res.json()
+        setProjects(data)
       }
+    } catch (err) {
+      toast.error('Error al cargar proyectos')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-      const res = await fetch('/api/projects', {
-        method: 'POST',
+  const handleSelectProject = (project: Project) => {
+    setSelectedProject(project)
+  }
+
+  const handleNewProject = () => {
+    setSelectedProject(INITIAL_PROJECT_STATE)
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setSelectedProject(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleAddChip = (field: 'technologies' | 'features', value: string) => {
+    if (!value.trim()) return
+    const current = selectedProject[field] || []
+    if (current.includes(value.trim())) return
+    
+    setSelectedProject(prev => ({
+      ...prev,
+      [field]: [...current, value.trim()]
+    }))
+    if (field === 'technologies') setTechInput('')
+    else setFeatureInput('')
+  }
+
+  const handleRemoveChip = (field: 'technologies' | 'features', value: string) => {
+    setSelectedProject(prev => ({
+      ...prev,
+      [field]: (prev[field] || []).filter(item => item !== value)
+    }))
+  }
+
+  const handleSave = async (password: string) => {
+    setIsSaving(true)
+    const isUpdate = !!projects.find(p => p.id === selectedProject.id)
+    const url = isUpdate ? `/api/projects/${selectedProject.id}` : '/api/projects'
+    const method = isUpdate ? 'PUT' : 'POST'
+
+    try {
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataConPassword)
+        body: JSON.stringify({
+          ...selectedProject,
+          adminPassword: password
+        })
       })
 
       if (res.ok) {
-        // alert('¡Datos guardados con éxito en la base de datos!')
+        toast.success(isUpdate ? 'Proyecto actualizado' : 'Proyecto creado')
+        fetchProjects()
         setShowPasswordModal(false)
-        // Podríamos resetear el formulario aquí si queremos
-        // handleCancelar();
-        toast('¡Datos guardados con éxito en la base de datos!')
       } else {
         const data = await res.json()
-        console.error(data)
-
-        throw new Error(data.error)
+        throw new Error(data.error || 'Error al guardar')
       }
-      console.log('dataConPassword', dataConPassword)
     } catch (err) {
-      console.error(err)
-      const errorInstance = err instanceof Error ? err.message : err
-      toast(errorInstance as string)
+      toast.error(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsSaving(false)
     }
   }
 
+  const handleDelete = async (password: string) => {
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/projects/${selectedProject.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminPassword: password })
+      })
+
+      if (res.ok) {
+        toast.success('Proyecto eliminado')
+        setSelectedProject(INITIAL_PROJECT_STATE)
+        fetchProjects()
+        setShowDeleteModal(false)
+      } else {
+        const data = await res.json()
+        throw new Error(data.error)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background-dark">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+      </div>
+    )
+  }
+
   return (
-    <div className='min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-8'>
-      <Toaster
-        toastOptions={{
-          duration: 8000,
-          className: 'w-96',
-          success: { icon: '✅' },
-          error: { icon: '❌' }
-        }}
-      />
-      <div className='max-w-6xl mx-auto'>
-        <header className='mb-8 md:mb-12'>
-          <h1 className='text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2'>
-            Crear nuevo Proyecto/Proyectos
-          </h1>
+    <div className="flex h-screen bg-background-dark text-gray-300 font-sans overflow-hidden">
+      <Toaster position="bottom-right" />
+      
+      {/* Sidebar de Proyectos */}
+      <aside className={`bg-panel-dark border-r border-border-dark flex flex-col transition-all duration-300 ${sidebarOpen ? 'w-72' : 'w-0 overflow-hidden'}`}>
+        <div className="p-4 border-b border-border-dark flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500">Explorador</h2>
+          <button onClick={handleNewProject} className="p-1 hover:bg-background-dark rounded-md text-primary transition-colors">
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-2 space-y-1">
+            {projects.map(project => (
+              <button
+                key={project.id}
+                onClick={() => handleSelectProject(project)}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  selectedProject.id === project.id 
+                    ? 'bg-background-dark text-primary border-l-2 border-primary' 
+                    : 'hover:bg-background-dark/50 text-gray-400'
+                }`}
+              >
+                <FolderCode className="w-4 h-4 shrink-0" />
+                <span className="truncate">{project.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* Área de Edición */}
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Toolbar Superior */}
+        <header className="h-12 border-b border-border-dark bg-panel-dark flex items-center justify-between px-6 shrink-0">
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-gray-500">Proyectos</span>
+            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <span className="text-white font-medium">{selectedProject.title || 'Nuevo Proyecto'}</span>
+            
+            {/* Toggle de Modo */}
+            <div className="flex items-center bg-background-dark rounded-md p-1 ml-4 border border-border-dark">
+              <button 
+                onClick={() => setViewMode('studio')}
+                className={`flex items-center gap-2 px-3 py-0.5 rounded text-xs transition-all ${viewMode === 'studio' ? 'bg-panel-dark text-primary shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                <Edit3 className="w-3.5 h-3.5" /> Studio
+              </button>
+              <button 
+                onClick={() => setViewMode('json')}
+                className={`flex items-center gap-2 px-3 py-0.5 rounded text-xs transition-all ${viewMode === 'json' ? 'bg-panel-dark text-primary shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                <FileJson className="w-3.5 h-3.5" /> JSON
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {selectedProject.id && (
+              <button 
+                onClick={() => setShowDeleteModal(true)}
+                className="p-2 text-gray-500 hover:text-red-400 transition-colors"
+                title="Eliminar Proyecto"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
+            <button 
+              onClick={() => setShowPasswordModal(true)}
+              disabled={isSaving}
+              className="flex items-center gap-2 bg-primary text-background-dark px-4 py-1.5 rounded-md font-bold text-sm hover:scale-105 transition-all"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Guardar
+            </button>
+          </div>
         </header>
 
-        <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden'>
-          {/* Paso 1: Pegar - Solo visible cuando showInput es true */}
-          {showInput && (
-            <div className='p-6 border-b border-gray-200 dark:border-gray-700 transition-all duration-300'>
-              <div className='flex items-center justify-between mb-4'>
-                <h2 className='text-xl font-semibold text-gray-800 dark:text-white'>
-                  Paso 1: Introduce tu objeto JavaScript
-                </h2>
-                <div className='text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full'>
-                  {inputRaw.length} caracteres
-                </div>
-              </div>
-
-              <div className='mb-4'>
-                <textarea
-                  placeholder={`// Pega tu objeto JavaScript aquí...
-// Ejemplo:
-{
-  nombre: "Ejemplo",
-  datos: [1, 2, 3],
-  config: {
-    activo: true,
-    version: "1.0"
-  }
-}`}
-                  value={inputRaw}
-                  onChange={(e) => setInputRaw(e.target.value)}
-                  className='w-full h-64 font-mono text-sm p-4 rounded-xl border border-gray-300 dark:border-gray-600 
-                    bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all
-                    resize-none'
-                  spellCheck='false'
-                />
-              </div>
-
-              <div className='flex flex-col sm:flex-row gap-3'>
-                <button
-                  onClick={handleConvertir}
-                  className='flex-1 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-medium py-3.5 px-6 
-                    rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg
-                    flex items-center justify-center'
-                >
-                  <svg
-                    className='w-5 h-5 mr-2'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
-                    />
-                  </svg>
-                  Convertir a JSON
-                </button>
-
-                <button
-                  onClick={() => setInputRaw('')}
-                  className='px-6 py-3.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 
-                    hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium'
-                >
-                  Limpiar
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Paso 2: Editar JSON resultante - Solo visible cuando jsonEdit tiene contenido */}
-          {jsonEdit && !showInput && (
-            <div className='transition-all duration-300'>
-              <div className='p-6 border-b border-gray-200 dark:border-gray-700'>
-                <div className='flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4'>
-                  <div>
-                    <h2 className='text-xl font-semibold text-gray-800 dark:text-white mb-1'>
-                      Paso 2: Edita el JSON resultante
-                    </h2>
-                    <p className='text-gray-600 dark:text-gray-400 text-sm'>
-                      Usa el editor para modificar el JSON. El texto se ajusta
-                      automáticamente (Alt+Z).
-                    </p>
+        {/* Contenido Dinámico */}
+        <div className="flex-1 overflow-hidden relative">
+          <AnimatePresence mode="wait">
+            {viewMode === 'studio' ? (
+              <motion.div 
+                key="studio"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+                className="h-full overflow-y-auto p-8 space-y-10 max-w-5xl mx-auto w-full"
+              >
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-border-dark pb-2">
+                    <Settings className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-bold text-white">Configuración General</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono text-gray-500 uppercase">ID del Proyecto</label>
+                      <input 
+                        name="id"
+                        value={selectedProject.id}
+                        onChange={handleInputChange}
+                        placeholder="ej: mi-proyecto-web"
+                        className="w-full bg-panel-dark border border-border-dark rounded-lg p-3 text-sm focus:border-primary/50 focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono text-gray-500 uppercase">Título</label>
+                      <input 
+                        name="title"
+                        value={selectedProject.title}
+                        onChange={handleInputChange}
+                        placeholder="Título del proyecto"
+                        className="w-full bg-panel-dark border border-border-dark rounded-lg p-3 text-sm focus:border-primary/50 focus:outline-none"
+                      />
+                    </div>
                   </div>
 
-                  <button
-                    onClick={handleVolverAEditar}
-                    className='flex items-center justify-center px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 
-                      text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium'
-                  >
-                    <svg
-                      className='w-4 h-4 mr-2'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        d='M10 19l-7-7m0 0l7-7m-7 7h18'
-                      />
-                    </svg>
-                    Volver a editar
-                  </button>
-                </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono text-gray-500 uppercase">Descripción Corta</label>
+                    <textarea 
+                      name="description"
+                      value={selectedProject.description}
+                      onChange={handleInputChange}
+                      rows={2}
+                      placeholder="Breve resumen para la tarjeta..."
+                      className="w-full bg-panel-dark border border-border-dark rounded-lg p-3 text-sm focus:border-primary/50 focus:outline-none resize-none"
+                    />
+                  </div>
+                </section>
 
-                <div className='rounded-xl overflow-hidden border border-gray-300 dark:border-gray-600 shadow-lg'>
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-border-dark pb-2">
+                    <Globe className="w-5 h-5 text-blue-400" />
+                    <h3 className="text-lg font-bold text-white">Links & Media</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono text-gray-500 uppercase flex items-center gap-2">
+                        <ImageIcon className="w-3 h-3" /> Imagen (URL)
+                      </label>
+                      <input 
+                        name="imageUrl"
+                        value={selectedProject.imageUrl}
+                        onChange={handleInputChange}
+                        placeholder="https://..."
+                        className="w-full bg-panel-dark border border-border-dark rounded-lg p-3 text-sm focus:border-primary/50 focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono text-gray-500 uppercase flex items-center gap-2">
+                        <Globe className="w-3 h-3" /> Live Demo (URL)
+                      </label>
+                      <input 
+                        name="liveUrl"
+                        value={selectedProject.liveUrl}
+                        onChange={handleInputChange}
+                        placeholder="https://..."
+                        className="w-full bg-panel-dark border border-border-dark rounded-lg p-3 text-sm focus:border-primary/50 focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono text-gray-500 uppercase flex items-center gap-2">
+                        <Github className="w-3 h-3" /> Repositorio (URL)
+                      </label>
+                      <input 
+                        name="repoUrl"
+                        value={selectedProject.repoUrl}
+                        onChange={handleInputChange}
+                        placeholder="https://github.com/..."
+                        className="w-full bg-panel-dark border border-border-dark rounded-lg p-3 text-sm focus:border-primary/50 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-border-dark pb-2">
+                    <Layout className="w-5 h-5 text-purple-400" />
+                    <h3 className="text-lg font-bold text-white">Especificaciones</h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-mono text-gray-500 uppercase">Tecnologías</label>
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-3 bg-background-dark/50 border border-border-dark rounded-xl">
+                      <AnimatePresence>
+                        {(selectedProject.technologies || []).map(tech => (
+                          <motion.span 
+                            key={tech} 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            className="flex items-center gap-2 px-3 py-1 bg-panel-dark border border-border-dark rounded-md text-xs text-primary"
+                          >
+                            {tech}
+                            <button onClick={() => handleRemoveChip('technologies', tech)}><X className="w-3 h-3" /></button>
+                          </motion.span>
+                        ))}
+                      </AnimatePresence>
+                      <input 
+                        value={techInput}
+                        onChange={(e) => setTechInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddChip('technologies', techInput)}
+                        placeholder="Añadir tech..."
+                        className="bg-transparent border-none outline-none text-xs text-gray-300 w-24"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-mono text-gray-500 uppercase">Características Clave</label>
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-3 bg-background-dark/50 border border-border-dark rounded-xl">
+                      <AnimatePresence>
+                        {(selectedProject.features || []).map(feat => (
+                          <motion.span 
+                            key={feat} 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            className="flex items-center gap-2 px-3 py-1 bg-panel-dark border border-border-dark rounded-md text-xs text-gray-300"
+                          >
+                            {feat}
+                            <button onClick={() => handleRemoveChip('features', feat)}><X className="w-3 h-3" /></button>
+                          </motion.span>
+                        ))}
+                      </AnimatePresence>
+                      <input 
+                        value={featureInput}
+                        onChange={(e) => setFeatureInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddChip('features', featureInput)}
+                        placeholder="Añadir feature..."
+                        className="bg-transparent border-none outline-none text-xs text-gray-300 w-32"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-border-dark pb-2">
+                    <Code2 className="w-5 h-5 text-yellow-400" />
+                    <h3 className="text-lg font-bold text-white">Code Snippet (JSON)</h3>
+                  </div>
+                  <div className="rounded-xl overflow-hidden border border-border-dark shadow-2xl">
+                    <Editor
+                      height="300px"
+                      defaultLanguage="json"
+                      theme="vs-dark"
+                      value={JSON.stringify(selectedProject.codeSnippet, null, 2)}
+                      onChange={(val) => {
+                        try {
+                          const parsed = JSON.parse(val || '{}')
+                          setSelectedProject(prev => ({ ...prev, codeSnippet: parsed }))
+                        } catch (e) { /* Error silencioso */ }
+                      }}
+                      options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, automaticLayout: true }}
+                    />
+                  </div>
+                </section>
+
+                <section className="space-y-4 pb-20">
+                  <div className="flex items-center gap-3 border-b border-border-dark pb-2">
+                    <Layout className="w-5 h-5 text-emerald-400" />
+                    <h3 className="text-lg font-bold text-white">Descripción Extendida</h3>
+                  </div>
+                  <textarea 
+                    name="longDescription"
+                    value={selectedProject.longDescription}
+                    onChange={handleInputChange}
+                    rows={10}
+                    placeholder="Contenido principal del proyecto (soporta Markdown)..."
+                    className="w-full bg-panel-dark border border-border-dark rounded-xl p-4 text-sm focus:border-primary/50 focus:outline-none resize-y min-h-[200px]"
+                  />
+                </section>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="json"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="h-full flex flex-col"
+              >
+                <div className="flex-1">
                   <Editor
-                    height='60vh'
-                    defaultLanguage='json'
-                    value={jsonEdit}
-                    theme='vs-dark'
-                    onChange={(value) => {
-                      setJsonEdit(value || '')
+                    height="100%"
+                    defaultLanguage="json"
+                    theme="vs-dark"
+                    value={JSON.stringify(selectedProject, null, 2)}
+                    onChange={(val) => {
+                      try {
+                        const parsed = JSON.parse(val || '{}')
+                        setSelectedProject(parsed)
+                      } catch (e) { /* Error silencioso */ }
                     }}
                     options={{
-                      wordWrap: 'on',
-                      wrappingStrategy: 'advanced',
-                      minimap: { enabled: false },
+                      minimap: { enabled: true },
                       fontSize: 14,
                       scrollBeyondLastLine: false,
                       automaticLayout: true,
-                      formatOnPaste: true,
-                      formatOnType: true
+                      wordWrap: 'on',
+                      padding: { top: 20 }
                     }}
                   />
                 </div>
-              </div>
-
-              <div className='p-6'>
-                <div className='flex flex-col sm:flex-row gap-4'>
-                  <button
-                    onClick={handleAbrirModalGuardar}
-                    className='flex-1 bg-linear-to-r from-green-600 to-emerald-600 text-white font-medium py-3.5 px-6 
-                      rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg
-                      flex items-center justify-center'
-                  >
-                    <svg
-                      className='w-5 h-5 mr-2'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        d='M5 13l4 4L19 7'
-                      />
-                    </svg>
-                    Guardar en Base de Datos
-                  </button>
-
-                  <button
-                    onClick={handleCancelar}
-                    className='flex-1 px-6 py-3.5 rounded-xl border border-red-300 dark:border-red-700 
-                      text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 
-                      transition-colors font-medium flex items-center justify-center'
-                  >
-                    <svg
-                      className='w-5 h-5 mr-2'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        d='M6 18L18 6M6 6l12 12'
-                      />
-                    </svg>
-                    Cancelar
-                  </button>
+                <div className="p-4 bg-panel-dark border-t border-border-dark text-xs text-gray-500 flex items-center gap-4 shrink-0">
+                  <AlertCircle className="w-4 h-4 text-yellow-500" />
+                  <span>Cuidado: Los cambios en el JSON se sincronizan inmediatamente con el estado del formulario. Asegúrate de mantener la estructura correcta.</span>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Mensaje de error */}
-          {error && (
-            <div className='mx-6 mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'>
-              <div className='flex items-start'>
-                <div className='shrink-0'>
-                  <svg
-                    className='h-5 w-5 text-red-600 dark:text-red-400'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                    />
-                  </svg>
-                </div>
-                <div className='ml-3'>
-                  <h3 className='text-sm font-medium text-red-800 dark:text-red-300'>
-                    Error de conversión
-                  </h3>
-                  <div className='mt-2 text-sm text-red-700 dark:text-red-400'>
-                    <p>{error}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Estado cuando no hay contenido */}
-          {!jsonEdit && !showInput && (
-            <div className='p-12 text-center'>
-              <div className='mx-auto max-w-md'>
-                <div className='mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-6'>
-                  <svg
-                    className='h-8 w-8 text-blue-600 dark:text-blue-400'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                    />
-                  </svg>
-                </div>
-                <h3 className='text-xl font-medium text-gray-800 dark:text-white mb-2'>
-                  Esperando entrada de datos
-                </h3>
-                <p className='text-gray-600 dark:text-gray-400 mb-8'>
-                  Introduce un objeto JavaScript en el campo de arriba y haz
-                  clic en {'Convertir a JSON'}para comenzar.
-                </p>
-                <button
-                  onClick={() => setShowInput(true)}
-                  className='inline-flex items-center px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 
-                    text-white font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md'
-                >
-                  <svg
-                    className='w-4 h-4 mr-2'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-                    />
-                  </svg>
-                  Comenzar de nuevo
-                </button>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </main>
 
-      {/* Modal para confirmación con contraseña */}
-      <PasswordModal
-        isOpen={showPasswordModal}
-        onClose={() => setShowPasswordModal(false)}
-        onConfirm={handleGuardarConPassword}
-        isLoading={isSaving}
-      />
+      {/* Modales */}
+      <PasswordModal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} onConfirm={handleSave} isLoading={isSaving} />
+      <PasswordModalDelete isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDelete} isLoading={isDeleting} title="Eliminar Proyecto" message={`¿Estás seguro de que quieres eliminar "${selectedProject.title}"?`} />
     </div>
   )
 }
