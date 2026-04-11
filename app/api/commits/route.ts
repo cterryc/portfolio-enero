@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { ENV } from '@/config/env'
+import { revalidatePath } from 'next/cache'
 
 export async function GET() {
   try {
@@ -23,22 +25,32 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
+    // Verificación de contraseña de administrador
+    if (!body.adminPassword || body.adminPassword !== ENV.ADMIN_PASSWORD) {
+      console.error('Admin Password Incorrect')
+      return NextResponse.json(
+        { error: 'Admin Password Incorrect' },
+        { status: 500 }
+      )
+    }
+
     // 1. Lógica para múltiples commits (Array)
-    if (Array.isArray(body)) {
+    if (Array.isArray(body.commits)) {
       const commits = await prisma.commit.createMany({
-        data: body.map((item) => ({
+        data: body.commits.map((item: any) => ({
           hash: item.hash,
           role: item.role,
           company: item.company,
           date: item.date,
-          head: item.head ?? false, // Usamos ?? para respetar el booleano false
+          head: item.head ?? false,
           branch: item.branch,
           merge: item.merge ?? false,
           details: item.details
         })),
-        skipDuplicates: true // Útil si el hash es un campo único (unique)
+        skipDuplicates: true
       })
 
+      revalidatePath('/experience')
       return NextResponse.json(commits, { status: 201 })
     }
 
@@ -56,6 +68,7 @@ export async function POST(request: Request) {
       }
     })
 
+    revalidatePath('/experience')
     return NextResponse.json(commit, { status: 201 })
   } catch (error) {
     console.error('Error al procesar commit(s):', error)

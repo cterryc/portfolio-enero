@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { ENV } from '@/config/env'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(
   request: Request,
@@ -36,6 +38,14 @@ export async function PUT(
     const body = await request.json()
     const { hash } = await params
 
+    // Verificación de contraseña de administrador
+    if (!body.adminPassword || body.adminPassword !== ENV.ADMIN_PASSWORD) {
+      return NextResponse.json(
+        { error: 'Admin Password Incorrect' },
+        { status: 500 }
+      )
+    }
+
     const commit = await prisma.commit.update({
       where: { hash: hash },
       data: {
@@ -49,6 +59,7 @@ export async function PUT(
       }
     })
 
+    revalidatePath('/experience')
     return NextResponse.json(commit)
   } catch (error) {
     console.error(error)
@@ -65,10 +76,21 @@ export async function DELETE(
 ) {
   try {
     const { hash } = await params
+    const body = await request.json()
+
+    // Verificación de contraseña de administrador
+    if (!body.adminPassword || body.adminPassword !== ENV.ADMIN_PASSWORD) {
+      return NextResponse.json(
+        { error: 'Admin Password Incorrect' },
+        { status: 500 }
+      )
+    }
+
     await prisma.commit.delete({
       where: { hash: hash }
     })
 
+    revalidatePath('/experience')
     return NextResponse.json({ message: 'Commit eliminado' })
   } catch (error) {
     console.error(error)
@@ -78,3 +100,4 @@ export async function DELETE(
     )
   }
 }
+
