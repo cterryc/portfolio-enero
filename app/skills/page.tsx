@@ -1,40 +1,92 @@
 'use client'
 
-import { Monitor, Database, Server, Wrench, Code } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Monitor, Database, Server, Wrench, Code, Loader2 } from 'lucide-react'
 
 export default function SkillsPage() {
-  const tecnologias = {
-    frontend: [
-      { nombre: 'React.js', color: 'border-primary' },
-      { nombre: 'Next.js', color: 'border-primary' },
-      { nombre: 'Vite', color: 'border-primary' },
-      { nombre: 'Tailwind', color: 'border-primary' },
-      { nombre: 'ReduxToolkit', color: 'border-primary' }
-    ],
-    backend: [
-      { nombre: 'Node.js', color: 'border-blue-500' },
-      { nombre: 'Express', color: 'border-blue-500' },
-      { nombre: 'Sequelize', color: 'border-blue-500' },
-      { nombre: 'NestJS', color: 'border-blue-500' },
-      { nombre: 'Prisma', color: 'border-blue-500' }
-    ],
-    basesDeDatos: [
-      { nombre: 'PostgreSQL', color: 'border-green-500' },
-      { nombre: 'MongoDB', color: 'border-green-500' }
-    ],
-    herramientas: [
-      { nombre: 'Git', color: 'border-purple-500' },
-      { nombre: 'GitHub', color: 'border-purple-500' },
-      { nombre: 'Vercel', color: 'border-purple-500' },
-      { nombre: 'Render', color: 'border-purple-500' },
-      { nombre: 'Postman', color: 'border-purple-500' },
-      { nombre: 'JWT', color: 'border-purple-500' }
-    ]
+  const [skills, setSkills] = useState<Record<string, string[]>>({
+    frontend: [],
+    backend: [],
+    basesDeDatos: [],
+    herramientas: []
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/skills')
+      .then((res) => res.json())
+      .then((data) => {
+        setSkills({
+          frontend: data.frontend || [],
+          backend: data.backend || [],
+          basesDeDatos: data.basesDeDatos || [],
+          herramientas: data.herramientas || []
+        })
+      })
+      .catch((err) => console.error('Error loading skills:', err))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className='flex-1 flex items-center justify-center bg-panel-dark'>
+        <Loader2 className='w-10 h-10 text-primary animate-spin' />
+      </div>
+    )
   }
+
+  // Generar dinámicamente las líneas del editor mock
+  const codeLines: React.ReactNode[] = []
+  let currentLine = 1
+
+  const addCodeLine = (content: React.ReactNode, indent = 0) => {
+    codeLines.push(
+      <div
+        key={currentLine}
+        className='h-[1.5em] flex items-center'
+        style={{ paddingLeft: `${indent * 1}rem` }}
+      >
+        {content}
+      </div>
+    )
+    currentLine++
+  }
+
+  addCodeLine(<span className='text-yellow-300'>{'{'}</span>)
+
+  const categories = Object.entries(skills)
+  categories.forEach(([key, values], catIdx) => {
+    addCodeLine(
+      <>
+        <span className='text-purple-400'>{`"${key}"`}</span>
+        <span className='text-gray-300'>: [</span>
+      </>,
+      1
+    )
+
+    values.forEach((val, idx) => {
+      addCodeLine(
+        <>
+          <span className='text-green-400'>{`"${val}"`}</span>
+          {idx < values.length - 1 && <span className='text-gray-300'>,</span>}
+        </>,
+        2
+      )
+    })
+
+    addCodeLine(
+      <span className='text-gray-300'>
+        {`]${catIdx < categories.length - 1 ? ',' : ''}`}
+      </span>,
+      1
+    )
+  })
+
+  addCodeLine(<span className='text-yellow-300'>{'}'}</span>)
 
   return (
     <div className='flex-1 flex flex-col lg:flex-row overflow-hidden'>
-      {/* Panel derecho: Tecnologías */}
+      {/* Panel izquierdo: Tecnologías Visuales */}
       <div className='flex-1 lg:w-1/2 overflow-y-auto bg-panel-dark relative border-b lg:border-b-0 lg:border-r border-border-dark'>
         <div className='p-6 md:p-8 max-w-3xl mx-auto'>
           {/* Cabecera */}
@@ -58,12 +110,12 @@ export default function SkillsPage() {
               <h2 className='text-xl font-bold text-white'>Frontend</h2>
             </div>
             <div className='grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3'>
-              {tecnologias.frontend.map((tech) => (
+              {skills.frontend.map((tech) => (
                 <div
-                  key={tech.nombre}
+                  key={tech}
                   className='bg-background-dark rounded-lg border border-border-dark p-4 hover:border-primary/50 transition-colors group'
                 >
-                  <span className='text-white font-medium'>{tech.nombre}</span>
+                  <span className='text-white font-medium'>{tech}</span>
                 </div>
               ))}
             </div>
@@ -76,12 +128,12 @@ export default function SkillsPage() {
               <h2 className='text-xl font-bold text-white'>Backend</h2>
             </div>
             <div className='grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3'>
-              {tecnologias.backend.map((tech) => (
+              {skills.backend.map((tech) => (
                 <div
-                  key={tech.nombre}
+                  key={tech}
                   className='bg-background-dark rounded-lg border border-border-dark p-4 hover:border-blue-400/50 transition-colors group'
                 >
-                  <span className='text-white font-medium'>{tech.nombre}</span>
+                  <span className='text-white font-medium'>{tech}</span>
                 </div>
               ))}
             </div>
@@ -94,12 +146,12 @@ export default function SkillsPage() {
               <h2 className='text-xl font-bold text-white'>Bases de Datos</h2>
             </div>
             <div className='grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3'>
-              {tecnologias.basesDeDatos.map((tech) => (
+              {skills.basesDeDatos.map((tech) => (
                 <div
-                  key={tech.nombre}
+                  key={tech}
                   className='bg-background-dark rounded-lg border border-border-dark p-4 hover:border-green-400/50 transition-colors group'
                 >
-                  <span className='text-white font-medium'>{tech.nombre}</span>
+                  <span className='text-white font-medium'>{tech}</span>
                 </div>
               ))}
             </div>
@@ -112,12 +164,12 @@ export default function SkillsPage() {
               <h2 className='text-xl font-bold text-white'>Herramientas</h2>
             </div>
             <div className='grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3'>
-              {tecnologias.herramientas.map((tech) => (
+              {skills.herramientas.map((tech) => (
                 <div
-                  key={tech.nombre}
+                  key={tech}
                   className='bg-background-dark rounded-lg border border-border-dark p-4 hover:border-purple-400/50 transition-colors group'
                 >
-                  <span className='text-white font-medium'>{tech.nombre}</span>
+                  <span className='text-white font-medium'>{tech}</span>
                 </div>
               ))}
             </div>
@@ -133,142 +185,31 @@ export default function SkillsPage() {
         </div>
       </div>
 
-      {/* Panel izquierdo: Editor de código mejorado */}
+      {/* Panel derecho: Editor de código mejorado */}
       <div className='flex-1 lg:max-w-96 max-md:hidden p-0 overflow-y-auto bg-panel-dark relative'>
         <div className='flex font-mono text-sm leading-relaxed min-h-full'>
-          {/* Números de línea - alineados correctamente */}
-          <div className='w-12 shrink-0 flex flex-col bg-background-dark/30 border-r border-border-dark/50 py-4'>
-            {Array.from({ length: 23 }, (_, i) => (
+          {/* Números de línea */}
+          <div className='w-12 shrink-0 flex flex-col bg-background-dark/30 border-r border-border-dark/50 py-5'>
+            {Array.from({ length: currentLine - 1 }, (_, i) => (
               <div
                 key={i}
-                className='h-6.5 flex items-center justify-end pr-3 text-gray-600 select-none'
+                className='h-[1.5em] flex items-center justify-end pr-3 text-gray-600 select-none'
               >
                 {i + 1}
               </div>
             ))}
           </div>
 
-          {/* Contenido del código */}
+          {/* Contenido del código dinámico */}
           <div className='flex-1 overflow-auto py-5'>
-            {/* Código JSON - cada línea con altura consistente */}
-            <div className='space-y-0 px-4'>
-              {/* Línea 1 */}
-              <div className='h-[1.5em] flex items-center'>
-                <span className='text-yellow-300'>{'{'}</span>
-              </div>
-
-              {/* Frontend */}
-              {/* Línea 2 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-purple-400'>{'"frontend"'}</span>
-                <span className='text-gray-300'>: [</span>
-              </div>
-
-              {/* Líneas 3-7 */}
-              {tecnologias.frontend.map((tech, idx) => (
-                <div
-                  key={tech.nombre}
-                  className='h-[1.5em] flex items-center pl-8'
-                >
-                  <span className='text-green-400'>{`"${tech.nombre}"`}</span>
-                  {idx < tecnologias.frontend.length - 1 && (
-                    <span className='text-gray-300'>,</span>
-                  )}
-                </div>
-              ))}
-
-              {/* Línea 8 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-gray-300'>],</span>
-              </div>
-
-              {/* Backend */}
-              {/* Línea 9 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-purple-400'>{'"backend"'}</span>
-                <span className='text-gray-300'>: [</span>
-              </div>
-
-              {/* Líneas 10-14 */}
-              {tecnologias.backend.map((tech, idx) => (
-                <div
-                  key={tech.nombre}
-                  className='h-[1.5em] flex items-center pl-8'
-                >
-                  <span className='text-green-400'>{`"${tech.nombre}"`}</span>
-                  {idx < tecnologias.backend.length - 1 && (
-                    <span className='text-gray-300'>,</span>
-                  )}
-                </div>
-              ))}
-
-              {/* Línea 15 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-gray-300'>],</span>
-              </div>
-
-              {/* Bases de Datos */}
-              {/* Línea 16 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-purple-400'>{'"databases"'}</span>
-                <span className='text-gray-300'>: [</span>
-              </div>
-
-              {/* Líneas 17-18 */}
-              {tecnologias.basesDeDatos.map((tech, idx) => (
-                <div
-                  key={tech.nombre}
-                  className='h-[1.5em] flex items-center pl-8'
-                >
-                  <span className='text-green-400'>{`"${tech.nombre}"`}</span>
-                  {idx < tecnologias.basesDeDatos.length - 1 && (
-                    <span className='text-gray-300'>,</span>
-                  )}
-                </div>
-              ))}
-
-              {/* Línea 19 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-gray-300'>],</span>
-              </div>
-
-              {/* Herramientas */}
-              {/* Línea 20 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-purple-400'>{'"tools"'}</span>
-                <span className='text-gray-300'>: [</span>
-              </div>
-
-              {/* Líneas 21-26 */}
-              {tecnologias.herramientas.map((tech, idx) => (
-                <div
-                  key={tech.nombre}
-                  className='h-[1.5em] flex items-center pl-8'
-                >
-                  <span className='text-green-400'>{`"${tech.nombre}"`}</span>
-                  {idx < tecnologias.herramientas.length - 1 && (
-                    <span className='text-gray-300'>,</span>
-                  )}
-                </div>
-              ))}
-
-              {/* Línea 27 */}
-              <div className='h-[1.5em] flex items-center pl-4'>
-                <span className='text-gray-300'>]</span>
-              </div>
-
-              {/* Línea 28 */}
-              <div className='h-[1.5em] flex items-center'>
-                <span className='text-yellow-300'>{'}'}</span>
-              </div>
-            </div>
+            <div className='space-y-0 px-4'>{codeLines}</div>
 
             {/* Footer del editor */}
             <div className='mt-4 px-4 text-xs text-gray-500 flex items-center justify-between'>
               <div className='flex items-center gap-4'>
                 <span>UTF-8</span>
-                <span>JavaScript</span>
-                <span>Líneas: 23</span>
+                <span>JSON</span>
+                <span>Líneas: {currentLine - 1}</span>
               </div>
               <span>100%</span>
             </div>
